@@ -1,0 +1,13 @@
+{
+    "name": "hidalgojunior/hidrossolo",
+    "description": "CMS para empresas de perfuração de poços artesianos",
+    "type": "project",
+    "require": {
+        "php": ">=7.4"
+    },
+    "autoload": {
+        "psr-4": {
+            "Hidrossolo\\": "src/"
+        }
+    }
+}
