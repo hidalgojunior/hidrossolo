@@ -105,14 +105,19 @@ jQuery(document).ready(function($) {
             .removeClass('circle outline check')
             .addClass('spinner loading');
 
+        console.log('Iniciando tarefa:', task);
+
         // Executa a tarefa
         $.ajax({
             url: `install_${task}.php`,
             method: 'POST',
-            dataType: 'json'
+            dataType: 'json',
+            cache: false
         })
         .done(function(response) {
-            if (response.success) {
+            console.log('Resposta recebida:', response);
+            
+            if (response && response.success) {
                 // Marca tarefa como concluída
                 $taskItem.find('.icon')
                     .removeClass('spinner loading')
@@ -125,11 +130,31 @@ jQuery(document).ready(function($) {
                 currentTask++;
                 executeNextTask();
             } else {
-                handleError(response.message);
+                const errorMsg = response ? response.message : 'Erro desconhecido na instalação';
+                handleError(errorMsg);
             }
         })
         .fail(function(jqXHR, textStatus, errorThrown) {
-            handleError('Erro na instalação: ' + errorThrown);
+            console.log('Detalhes do erro:', {
+                status: jqXHR.status,
+                statusText: jqXHR.statusText,
+                responseText: jqXHR.responseText,
+                textStatus: textStatus,
+                errorThrown: errorThrown
+            });
+
+            let errorMessage = 'Erro na instalação';
+            
+            if (jqXHR.responseText) {
+                try {
+                    const response = JSON.parse(jqXHR.responseText);
+                    errorMessage = response.message || errorMessage;
+                } catch (e) {
+                    errorMessage = jqXHR.responseText;
+                }
+            }
+
+            handleError(errorMessage);
         });
     }
 
@@ -163,18 +188,10 @@ jQuery(document).ready(function($) {
     }
 
     function handleError(message) {
+        console.log('Tratando erro:', message);
+        
         $startButton.removeClass('loading disabled');
         
-        // Traduz mensagens de erro comuns
-        message = message.replace('SQLSTATE[23000]', 'Erro de Integridade')
-                        .replace('Duplicate entry', 'Entrada duplicada')
-                        .replace('Integrity constraint violation', 'Violação de restrição')
-                        .replace('Table', 'Tabela')
-                        .replace('doesn\'t exist', 'não existe')
-                        .replace('Access denied', 'Acesso negado')
-                        .replace('for user', 'para o usuário');
-        
-        // Mostra modal de erro
         const $modal = $(`
             <div class="ui small modal">
                 <div class="header">
@@ -182,8 +199,11 @@ jQuery(document).ready(function($) {
                     Erro na Instalação
                 </div>
                 <div class="content">
-                    <p>${message}</p>
-                    <p>Por favor, verifique os dados e tente novamente.</p>
+                    <div class="ui negative message">
+                        <div class="header">Ocorreu um erro</div>
+                        <p>${message}</p>
+                    </div>
+                    <p>Por favor, verifique o arquivo install_error.log para mais detalhes.</p>
                 </div>
                 <div class="actions">
                     <div class="ui positive button">OK</div>

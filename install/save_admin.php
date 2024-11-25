@@ -6,6 +6,7 @@ try {
     $config = $_SESSION['db_config'];
     $dsn = "mysql:host={$config['host']};port={$config['port']};dbname={$config['name']}";
     $conn = new PDO($dsn, $config['user'], $config['pass']);
+    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     
     // Pega os dados do POST
     $name = $_POST['admin_name'] ?? '';
@@ -24,17 +25,40 @@ try {
     // Hash da senha
     $passHash = password_hash($pass, PASSWORD_DEFAULT);
     
-    // Insere o administrador
-    $stmt = $conn->prepare("INSERT INTO {$config['prefix']}users (name, email, password, role) VALUES (?, ?, ?, 'admin')");
-    $stmt->execute([$name, $email, $passHash]);
+    // Verifica se o usuário já existe
+    $stmt = $conn->prepare("SELECT id FROM {$config['prefix']}users WHERE email = ?");
+    $stmt->execute([$email]);
+    $user = $stmt->fetch();
+    
+    if ($user) {
+        // Atualiza o usuário existente
+        $stmt = $conn->prepare("UPDATE {$config['prefix']}users 
+                              SET name = ?, 
+                                  password = ?, 
+                                  role = 'admin' 
+                              WHERE email = ?");
+        $stmt->execute([$name, $passHash, $email]);
+        $message = 'Administrador atualizado com sucesso!';
+    } else {
+        // Insere novo usuário
+        $stmt = $conn->prepare("INSERT INTO {$config['prefix']}users 
+                              (name, email, password, role) 
+                              VALUES (?, ?, ?, 'admin')");
+        $stmt->execute([$name, $email, $passHash]);
+        $message = 'Administrador criado com sucesso!';
+    }
     
     // Atualiza o email nas configurações
-    $stmt = $conn->prepare("UPDATE {$config['prefix']}configs SET config_value = ? WHERE config_key = 'admin_email'");
-    $stmt->execute([$email]);
+    $stmt = $conn->prepare("INSERT INTO {$config['prefix']}configs 
+                          (config_key, config_value) 
+                          VALUES ('admin_email', ?) 
+                          ON DUPLICATE KEY UPDATE config_value = ?");
+    $stmt->execute([$email, $email]);
     
     // Cria arquivo de configuração
     $configFile = '../config.php';
-    $configContent = "<?php\ndefine('DB_HOST', '{$config['host']}');\n" .
+    $configContent = "<?php\n" .
+                    "define('DB_HOST', '{$config['host']}');\n" .
                     "define('DB_PORT', '{$config['port']}');\n" .
                     "define('DB_NAME', '{$config['name']}');\n" .
                     "define('DB_USER', '{$config['user']}');\n" .
@@ -48,7 +72,7 @@ try {
     
     echo json_encode([
         'success' => true,
-        'message' => 'Administrador configurado com sucesso!'
+        'message' => $message
     ]);
 
 } catch (Exception $e) {

@@ -1,0 +1,97 @@
+[25-Nov-2024 18:52:22 UTC] Iniciando instalação das tabelas
+[25-Nov-2024 18:52:22 UTC] Dados da sessão: Array
+(
+    [step1_completed] => 1
+    [current_step] => 2
+    [db_config] => Array
+        (
+            [host] => localhost
+            [port] => 3306
+            [name] => hidrossolo
+            [user] => root
+            [pass] => 
+            [prefix] => hds_
+        )
+
+)
+
+[25-Nov-2024 18:52:22 UTC] Configuração recuperada: Array
+(
+    [host] => localhost
+    [port] => 3306
+    [name] => hidrossolo
+    [user] => root
+    [pass] => 
+    [prefix] => hds_
+)
+
+[25-Nov-2024 18:52:22 UTC] Conexão estabelecida com sucesso
+[25-Nov-2024 18:52:22 UTC] Tentando criar tabela users
+[25-Nov-2024 18:52:22 UTC] Tabela users criada com sucesso
+[25-Nov-2024 18:52:22 UTC] Enviando resposta: {"success":true,"message":"Tabela de usu\u00e1rios criada com sucesso!"}
+[25-Nov-2024 18:53:19 UTC] Iniciando instalação das tabelas
+[25-Nov-2024 18:53:19 UTC] Dados da sessão: Array
+(
+    [step1_completed] => 1
+    [current_step] => 2
+    [db_config] => Array
+        (
+            [host] => localhost
+            [port] => 3306
+            [name] => hidrossolo
+            [user] => root
+            [pass] => 
+            [prefix] => hds_
+        )
+
+)
+
+[25-Nov-2024 18:53:19 UTC] Configuração recuperada: Array
+(
+    [host] => localhost
+    [port] => 3306
+    [name] => hidrossolo
+    [user] => root
+    [pass] => 
+    [prefix] => hds_
+)
+
+[25-Nov-2024 18:53:19 UTC] Conexão estabelecida com sucesso
+[25-Nov-2024 18:53:19 UTC] Tentando criar tabela users
+[25-Nov-2024 18:53:19 UTC] Tabela users criada com sucesso
+[25-Nov-2024 18:53:19 UTC] Tentando criar tabela roles
+[25-Nov-2024 18:53:19 UTC] Tabela roles criada com sucesso
+[25-Nov-2024 18:53:19 UTC] Enviando resposta: {"success":true,"message":"Tabela de usu\u00e1rios e roles criadas com sucesso!"}
+[25-Nov-2024 18:54:36 UTC] Iniciando instalação das tabelas
+[25-Nov-2024 18:54:36 UTC] Dados da sessão: Array
+(
+    [step1_completed] => 1
+    [current_step] => 2
+    [db_config] => Array
+        (
+            [host] => localhost
+            [port] => 3306
+            [name] => hidrossolo
+            [user] => root
+            [pass] => 
+            [prefix] => hds_
+        )
+
+)
+
+[25-Nov-2024 18:54:36 UTC] Configuração recuperada: Array
+(
+    [host] => localhost
+    [port] => 3306
+    [name] => hidrossolo
+    [user] => root
+    [pass] => 
+    [prefix] => hds_
+)
+
+[25-Nov-2024 18:54:36 UTC] Conexão estabelecida com sucesso
+[25-Nov-2024 18:54:36 UTC] Tentando criar tabela users
+[25-Nov-2024 18:54:36 UTC] Tabela users criada com sucesso
+[25-Nov-2024 18:54:36 UTC] Tentando criar tabela roles
+[25-Nov-2024 18:54:36 UTC] Tabela roles criada com sucesso
+[25-Nov-2024 18:54:36 UTC] Enviando resposta: {"success":true,"message":"Tabela de usu\u00e1rios e roles criadas com sucesso!"}
