@@ -1,0 +1,76 @@
+services:
+  nginx:
+    image: nginx:alpine
+    container_name: hidrossolo_nginx
+    ports:
+      - "8083:80"
+    volumes:
+      - ./../:/var/www/html
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - app
+    networks:
+      - hidrossolo_net
+
+  app:
+    build:
+      context: ./php
+      dockerfile: Dockerfile
+    container_name: hidrossolo_app
+    volumes:
+      - ./../:/var/www/html
+    depends_on:
+      - mysql
+      - redis
+    networks:
+      - hidrossolo_net
+
+  mysql:
+    image: mysql:8.0
+    container_name: hidrossolo_mysql
+    ports:
+      - "3308:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: root_secret
+      MYSQL_DATABASE: hidrossolo
+      MYSQL_USER: hidrossolo
+      MYSQL_PASSWORD: hidrossolo_secret
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci --init-connect='SET NAMES utf8mb4'
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./../database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+    networks:
+      - hidrossolo_net
+
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: hidrossolo_pma
+    ports:
+      - "8081:80"
+    environment:
+      PMA_HOST: mysql
+      PMA_PORT: 3306
+      PMA_USER: hidrossolo
+      PMA_PASSWORD: hidrossolo_secret
+    depends_on:
+      - mysql
+    networks:
+      - hidrossolo_net
+
+  redis:
+    image: redis:alpine
+    container_name: hidrossolo_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - hidrossolo_net
+
+volumes:
+  mysql_data:
+  redis_data:
+
+networks:
+  hidrossolo_net:
+    driver: bridge

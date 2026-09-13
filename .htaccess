@@ -1,0 +1,25 @@
+RewriteEngine On
+
+# Proteger pasta includes
+RewriteRule ^includes/ - [F,L]
+
+# Proteger uploads (exceto imagens públicas)
+RewriteRule ^uploads/(?!.*\.(jpg|jpeg|png|gif|webp)$) - [F,L]
+
+# Proteger arquivos de configuração
+RewriteRule \.(env|sql|log)$ - [F,L]
+
+# Sistema de páginas WordPress-like
+RewriteRule ^page/([^/]+)/?$ index.php?page=$1 [QSA,L]
+RewriteRule ^blog/([^/]+)/?$ pages/blog.php?post=$1 [QSA,L]
+
+# Redirecionar HTTP para HTTPS (se aplicável)
+# RewriteCond %{HTTPS} off
+# RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+# Outras regras de segurança
+# Prevenir acesso a arquivos .htaccess
+RewriteRule \.htaccess$ - [F,L]
+
+# Prevenir listagem de diretórios
+Options -Indexes

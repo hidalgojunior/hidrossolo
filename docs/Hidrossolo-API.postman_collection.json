@@ -1,0 +1,241 @@
+{
+  "info": {
+    "name": "Hidrossolo - API",
+    "description": "API do sistema Hidrossolo Poços Artesianos.\n\n**Base URL:** `http://<IP>:8083`\n\n## 🔑 Autenticação\n\nEndpoints autenticados usam **Bearer Token** no header:\n```\nAuthorization: Bearer hidrossolo_api_2026_token_admin\n```\n\n### Exemplo cURL:\n```bash\ncurl -H \"Authorization: Bearer hidrossolo_api_2026_token_admin\" http://<IP>:8083/api/dashboard\n```\n\n### Exemplo JavaScript:\n```js\nfetch('http://<IP>:8083/api/dashboard', {\n  headers: { 'Authorization': 'Bearer hidrossolo_api_2026_token_admin' }\n})\n```\n\nEndpoints públicos (`/api/status`, `/api/contato`) não precisam de token.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "hidrossolo_api_2026_token_admin",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8083"
+    },
+    {
+      "key": "token",
+      "value": "hidrossolo_api_2026_token_admin"
+    }
+  ],
+  "item": [
+    {
+      "name": "🏥 Público",
+      "item": [
+        {
+          "name": "Status do Sistema",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/status",
+            "description": "Retorna status online, versão e timestamp."
+          }
+        },
+        {
+          "name": "Enviar Contato",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/api/contato",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"João Silva\",\n  \"email\": \"joao@email.com\",\n  \"phone\": \"(14) 99999-9999\",\n  \"message\": \"Gostaria de solicitar um orçamento para perfuração de poço.\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "📊 Dashboard",
+      "item": [
+        {
+          "name": "Dashboard / Estatísticas",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/dashboard",
+            "description": "Retorna contadores e listas resumidas (contatos novos, contratos ativos, veículos, etc). Requer autenticação."
+          }
+        }
+      ]
+    },
+    {
+      "name": "🛠️ Serviços",
+      "item": [
+        {
+          "name": "Listar Serviços",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/servicos",
+            "description": "Retorna todos os serviços ativos ordenados por sort_order."
+          }
+        },
+        {
+          "name": "Detalhe Serviço",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/servicos/1",
+            "description": "Retorna detalhes de um serviço específico incluindo imagens."
+          }
+        }
+      ]
+    },
+    {
+      "name": "📩 Contatos / Mensagens",
+      "item": [
+        {
+          "name": "Listar Contatos",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/contatos",
+            "description": "Lista mensagens de contato. Filtro opcional: ?status=new|read|replied"
+          }
+        },
+        {
+          "name": "Listar Contatos (não lidos)",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/contatos?status=new"
+          }
+        },
+        {
+          "name": "Detalhe Contato",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/contatos/1"
+          }
+        }
+      ]
+    },
+    {
+      "name": "🚛 Frota",
+      "item": [
+        {
+          "name": "Listar Veículos",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/frota",
+            "description": "Lista veículos. Filtro: ?status=active|maintenance|inactive"
+          }
+        },
+        {
+          "name": "Detalhe Veículo",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/frota/1"
+          }
+        },
+        {
+          "name": "Manutenções do Veículo",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/frota/1/manutencoes",
+            "description": "Histórico de manutenções de um veículo."
+          }
+        },
+        {
+          "name": "Abastecimentos do Veículo",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/frota/1/abastecimentos",
+            "description": "Histórico de abastecimentos de um veículo."
+          }
+        }
+      ]
+    },
+    {
+      "name": "📄 Contratos",
+      "item": [
+        {
+          "name": "Listar Contratos",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/contratos",
+            "description": "Lista contratos. Filtro: ?status=active|expired|cancelled|completed"
+          }
+        },
+        {
+          "name": "Detalhe Contrato",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/contratos/1",
+            "description": "Retorna contrato incluindo arquivos anexos."
+          }
+        }
+      ]
+    },
+    {
+      "name": "📝 CMS / Páginas",
+      "item": [
+        {
+          "name": "Listar Páginas",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/paginas",
+            "description": "Retorna todas as páginas com título, slug, status."
+          }
+        },
+        {
+          "name": "Detalhe Página (por slug)",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/paginas/home",
+            "description": "Retorna página completa incluindo seções (page_contents)."
+          }
+        }
+      ]
+    },
+    {
+      "name": "📰 Blog",
+      "item": [
+        {
+          "name": "Listar Posts",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/blog",
+            "description": "Retorna posts publicados."
+          }
+        },
+        {
+          "name": "Detalhe Post (por slug)",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/blog/slug-do-post"
+          }
+        }
+      ]
+    },
+    {
+      "name": "🖼️ Mídia",
+      "item": [
+        {
+          "name": "Listar Mídias",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/midia",
+            "description": "Lista arquivos de mídia. Filtro: ?category=general"
+          }
+        }
+      ]
+    },
+    {
+      "name": "⚙️ Configurações",
+      "item": [
+        {
+          "name": "Configurações do Site",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/configuracoes",
+            "description": "Retorna dados da empresa (endereço, telefone, etc), SEO e site_settings agrupados."
+          }
+        }
+      ]
+    }
+  ]
+}

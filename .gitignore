@@ -1,0 +1,31 @@
+# Arquivos de configuração sensíveis
+.env
+config.local.php
+
+# Logs
+*.log
+error_log
+
+# Backups
+backup_*.php
+*backup*
+
+# Arquivos temporários
+*.tmp
+*.temp
+
+# Diretórios de upload (exceto estrutura)
+uploads/*/
+!uploads/.gitkeep
+
+# IDE
+.vscode/
+.idea/
+
+# Sistema operacional
+.DS_Store
+Thumbs.db
+
+# Banco de dados
+*.sql
+!db_structure.sql

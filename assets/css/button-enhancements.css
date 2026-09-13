@@ -1,0 +1,109 @@
+/* Button Enhancements for Hidrossolo */
+
+/* Botões Primários com efeito de onda */
+.btn-primary,
+.btn-action {
+    position: relative;
+    overflow: hidden;
+    z-index: 1;
+    transition: all 0.3s ease;
+}
+
+.btn-primary::before,
+.btn-action::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 0;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.2);
+    transition: all 0.5s ease;
+    z-index: -1;
+}
+
+.btn-primary:hover::before,
+.btn-action:hover::before {
+    width: 100%;
+}
+
+/* Botão com borda animada */
+.btn-outline-primary,
+.btn-outline-light {
+    position: relative;
+    transition: all 0.3s ease;
+    z-index: 1;
+}
+
+.btn-outline-primary::after,
+.btn-outline-light::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background-color: currentColor;
+    transition: all 0.3s ease;
+}
+
+.btn-outline-primary:hover::after,
+.btn-outline-light:hover::after {
+    width: 100%;
+}
+
+/* Botão secundário com efeito de elevação */
+.btn-secondary {
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.btn-secondary:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Botões com ícones - efeito de movimento */
+.btn i {
+    transition: transform 0.3s ease;
+    display: inline-block;
+}
+
+.btn:hover i {
+    transform: translateX(4px);
+}
+
+/* Botões de ação especiais */
+.btn-action {
+    border-radius: 50px;
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    font-size: 0.9rem;
+}
+
+/* Botão CTA (Call to Action) */
+.btn-cta {
+    background-image: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    border: none;
+    color: white;
+    font-weight: 700;
+    padding: 1rem 2rem;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-lg);
+    transition: all 0.4s ease;
+}
+
+.btn-cta:hover {
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: var(--shadow-xl);
+}
+
+/* Responsividade para botões */
+@media (max-width: 768px) {
+    .btn-lg {
+        padding: 0.75rem 1.25rem;
+        font-size: 1rem;
+    }
+}
