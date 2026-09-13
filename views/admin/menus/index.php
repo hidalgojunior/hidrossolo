@@ -35,7 +35,7 @@
             </div>
             <div class="card-body">
                 <p class="text-muted">Gerencie os itens deste menu.</p>
-                <a href="/admin/menus/<?= e($menu['id']) ?>" class="btn btn-sm btn-outline-primary">Editar Itens</a>
+                <a href="/admin/menus/<?= e($menu['id']) ?>/itens" class="btn btn-sm btn-outline-primary">Editar Itens</a>
             </div>
         </div>
     </div>

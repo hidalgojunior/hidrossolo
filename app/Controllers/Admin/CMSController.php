@@ -5,9 +5,15 @@ declare(strict_types=1);
 namespace App\Controllers\Admin;
 
 use App\Core\BaseController;
+use App\Core\Security;
 
 class CMSController extends BaseController
 {
+    /**
+     * Chave usada em `page_contents.section` para as seções livres da Home.
+     */
+    private const SECAO_LIVRE = 'secao';
+
     // ==================== HOME ====================
 
     public function home(): void
@@ -19,10 +25,17 @@ class CMSController extends BaseController
             [$page['id']]
         ) : [];
 
+        // Seções livres criadas pelo administrador (podem ser incluídas e removidas)
+        $secoes = $page ? $db->fetchAll(
+            "SELECT * FROM page_contents WHERE page_id = ? AND section = ? ORDER BY sort_order, id",
+            [$page['id'], self::SECAO_LIVRE]
+        ) : [];
+
         echo $this->view('admin.cms.home', [
             'title' => 'Gerenciar Home',
             'page' => $page,
             'sections' => $sections,
+            'secoes' => $secoes,
             'config' => $this->config('company'),
         ]);
     }
@@ -37,8 +50,10 @@ class CMSController extends BaseController
             'title' => 'Home', 'slug' => 'home', 'status' => 'published',
         ]);
 
-        // Remover seções antigas e reinserir
-        $db->delete('page_contents', 'page_id = ?', [$pageId]);
+        // Remover apenas as seções fixas e reinserir.
+        // As seções livres (SECAO_LIVRE) são preservadas, para que o
+        // administrador possa incluir e excluir seções sem perdê-las ao salvar.
+        $db->delete('page_contents', 'page_id = ? AND section <> ?', [$pageId, self::SECAO_LIVRE]);
 
         // Hero
         $db->insert('page_contents', [
@@ -79,6 +94,161 @@ class CMSController extends BaseController
 
         $_SESSION['flash_success'] = 'Home atualizada com sucesso!';
         $this->redirect('/admin/cms/home');
+    }
+
+    /**
+     * Adiciona uma nova seção livre à Home.
+     */
+    public function storeSection(): void
+    {
+        $pageId = $this->pageId();
+
+        $titulo = trim((string) ($_POST['title'] ?? ''));
+
+        if ($titulo === '') {
+            $_SESSION['flash_error'] = 'Informe o título da seção.';
+            $this->redirect('/admin/cms/home');
+        }
+
+        $db = $this->db();
+
+        $ordem = $db->fetch(
+            "SELECT COALESCE(MAX(sort_order), 0) + 1 AS proxima FROM page_contents WHERE page_id = ? AND section = ?",
+            [$pageId, self::SECAO_LIVRE]
+        );
+
+        $id = $db->insert('page_contents', [
+            'page_id' => $pageId,
+            'section' => self::SECAO_LIVRE,
+            'title' => mb_substr($titulo, 0, 255),
+            'subtitle' => $this->texto('subtitle', 255),
+            'content' => $this->texto('content'),
+            'image' => $this->texto('image', 500),
+            'link_url' => $this->texto('link_url', 500),
+            'link_text' => $this->texto('link_text', 255),
+            'sort_order' => (int) ($ordem['proxima'] ?? 1),
+        ]);
+
+        Security::audit('home_section_created', 'page_contents', $id, ['page_id' => $pageId]);
+
+        $_SESSION['flash_success'] = 'Seção adicionada à Home!';
+        $this->redirect('/admin/cms/home');
+    }
+
+    /**
+     * Atualiza uma seção livre da Home.
+     */
+    public function updateSection(string $id): void
+    {
+        $secao = $this->secao((int) $id);
+
+        $this->db()->update('page_contents', [
+            'title' => mb_substr(trim((string) ($_POST['title'] ?? $secao['title'])), 0, 255),
+            'subtitle' => $this->texto('subtitle', 255),
+            'content' => $this->texto('content'),
+            'image' => $this->texto('image', 500),
+            'link_url' => $this->texto('link_url', 500),
+            'link_text' => $this->texto('link_text', 255),
+            'sort_order' => (int) ($_POST['sort_order'] ?? $secao['sort_order']),
+        ], 'id = ?', [(int) $id]);
+
+        Security::audit('home_section_updated', 'page_contents', (int) $id);
+
+        $_SESSION['flash_success'] = 'Seção atualizada!';
+        $this->redirect('/admin/cms/home');
+    }
+
+    /**
+     * Remove uma seção livre da Home.
+     */
+    public function deleteSection(string $id): void
+    {
+        $this->secao((int) $id);
+
+        $this->db()->delete('page_contents', 'id = ?', [(int) $id]);
+
+        Security::audit('home_section_deleted', 'page_contents', (int) $id);
+
+        $_SESSION['flash_success'] = 'Seção removida da Home.';
+        $this->redirect('/admin/cms/home');
+    }
+
+    /**
+     * Move a seção para cima ou para baixo na ordem de exibição.
+     */
+    public function moveSection(string $id): void
+    {
+        $secao = $this->secao((int) $id);
+        $direcao = ($_POST['direcao'] ?? 'cima') === 'baixo' ? 'baixo' : 'cima';
+        $db = $this->db();
+
+        $vizinho = $db->fetch(
+            $direcao === 'cima'
+                ? "SELECT * FROM page_contents WHERE page_id = ? AND section = ? AND (sort_order < ? OR (sort_order = ? AND id < ?)) ORDER BY sort_order DESC, id DESC LIMIT 1"
+                : "SELECT * FROM page_contents WHERE page_id = ? AND section = ? AND (sort_order > ? OR (sort_order = ? AND id > ?)) ORDER BY sort_order ASC, id ASC LIMIT 1",
+            [$secao['page_id'], self::SECAO_LIVRE, $secao['sort_order'], $secao['sort_order'], $secao['id']]
+        );
+
+        if ($vizinho) {
+            $db->update('page_contents', ['sort_order' => $vizinho['sort_order']], 'id = ?', [(int) $secao['id']]);
+            $db->update('page_contents', ['sort_order' => $secao['sort_order']], 'id = ?', [(int) $vizinho['id']]);
+        }
+
+        $this->redirect('/admin/cms/home');
+    }
+
+    /* ===================================================================== */
+
+    /**
+     * Garante (e devolve) o id da página Home.
+     */
+    private function pageId(): int
+    {
+        $page = $this->db()->fetch("SELECT id FROM pages WHERE slug = 'home'");
+
+        if ($page) {
+            return (int) $page['id'];
+        }
+
+        return $this->db()->insert('pages', [
+            'title' => 'Home',
+            'slug' => 'home',
+            'status' => 'published',
+        ]);
+    }
+
+    /**
+     * Carrega uma seção livre, garantindo que ela pertence à Home.
+     *
+     * @return array<string,mixed>
+     */
+    private function secao(int $id): array
+    {
+        $secao = $this->db()->fetch(
+            'SELECT * FROM page_contents WHERE id = ? AND section = ?',
+            [$id, self::SECAO_LIVRE]
+        );
+
+        if (!$secao) {
+            $_SESSION['flash_error'] = 'Seção não encontrada.';
+            $this->redirect('/admin/cms/home');
+        }
+
+        return $secao;
+    }
+
+    /**
+     * Lê um campo de texto do formulário, respeitando o limite da coluna.
+     */
+    private function texto(string $campo, ?int $limite = null): ?string
+    {
+        $valor = trim((string) ($_POST[$campo] ?? ''));
+
+        if ($valor === '') {
+            return null;
+        }
+
+        return $limite !== null ? mb_substr($valor, 0, $limite) : $valor;
     }
 
     // ==================== EMPRESA ====================

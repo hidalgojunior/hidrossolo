@@ -169,6 +169,224 @@
     <button type="submit" class="btn btn-primary btn-lg">💾 Salvar Home</button>
 </form>
 
+<!-- Seções livres: incluir, editar, reordenar e excluir -->
+<div class="card mt-4">
+    <div class="card-header bg-white d-flex flex-wrap justify-content-between align-items-center gap-2">
+        <div>
+            <h5 class="mb-0">🧩 Seções da Home</h5>
+            <small class="text-muted">Blocos livres exibidos no fim da página, logo antes do bloco de contato.</small>
+        </div>
+        <button type="button" class="btn btn-primary btn-sm" onclick="abrirSecao(null)">
+            <i class="bi bi-plus-lg me-1"></i>Adicionar seção
+        </button>
+    </div>
+    <div class="card-body p-0">
+        <?php if (empty($secoes)) { ?>
+            <p class="text-muted text-center py-4 mb-0">
+                Nenhuma seção adicional. Clique em <strong>Adicionar seção</strong> para criar blocos como
+                “Onde atendemos”, “Como funciona”, “Perguntas frequentes” etc.
+            </p>
+        <?php } else { ?>
+            <div class="table-responsive">
+                <table class="table align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="width:70px">Ordem</th>
+                            <th>Seção</th>
+                            <th style="width:200px" class="text-end">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($secoes as $indice => $secao) { ?>
+                            <tr>
+                                <td><span class="badge bg-secondary"><?= e((int) $secao['sort_order']) ?></span></td>
+                                <td>
+                                    <div class="d-flex align-items-start gap-2">
+                                        <?php if (!empty($secao['image'])) { ?>
+                                            <img src="<?= e($secao['image']) ?>" alt="" style="width:48px;height:48px;object-fit:cover;border-radius:6px">
+                                        <?php } ?>
+                                        <div style="min-width:0">
+                                            <strong><?= e($secao['title']) ?></strong>
+                                            <?php if (!empty($secao['subtitle'])) { ?>
+                                                <div class="small text-muted"><?= e(str_limit($secao['subtitle'], 110)) ?></div>
+                                            <?php } ?>
+                                            <?php if (!empty($secao['link_url'])) { ?>
+                                                <div class="small text-muted">
+                                                    <i class="bi bi-link-45deg"></i>
+                                                    <?= e($secao['link_text'] ?: 'Saiba mais') ?> → <?= e($secao['link_url']) ?>
+                                                </div>
+                                            <?php } ?>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="text-end text-nowrap">
+                                    <form method="POST" action="/admin/cms/home/secoes/<?= e($secao['id']) ?>/mover" class="d-inline">
+                                        <?= csrf_field() ?>
+                                        <input type="hidden" name="direcao" value="cima">
+                                        <button class="btn btn-sm btn-outline-secondary" title="Mover para cima" <?= $indice === 0 ? 'disabled' : '' ?>>
+                                            <i class="bi bi-arrow-up"></i>
+                                        </button>
+                                    </form>
+                                    <form method="POST" action="/admin/cms/home/secoes/<?= e($secao['id']) ?>/mover" class="d-inline">
+                                        <?= csrf_field() ?>
+                                        <input type="hidden" name="direcao" value="baixo">
+                                        <button class="btn btn-sm btn-outline-secondary" title="Mover para baixo" <?= $indice === count($secoes) - 1 ? 'disabled' : '' ?>>
+                                            <i class="bi bi-arrow-down"></i>
+                                        </button>
+                                    </form>
+
+                                    <button type="button" class="btn btn-sm btn-outline-primary"
+                                            data-secao='<?= json_attr([
+                                                'id' => (int) $secao['id'],
+                                                'title' => (string) $secao['title'],
+                                                'subtitle' => (string) ($secao['subtitle'] ?? ''),
+                                                'content' => (string) ($secao['content'] ?? ''),
+                                                'image' => (string) ($secao['image'] ?? ''),
+                                                'link_url' => (string) ($secao['link_url'] ?? ''),
+                                                'link_text' => (string) ($secao['link_text'] ?? ''),
+                                                'sort_order' => (int) $secao['sort_order'],
+                                            ]) ?>'
+                                            onclick="abrirSecao(this)">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
+
+                                    <form method="POST" action="/admin/cms/home/secoes/<?= e($secao['id']) ?>/excluir" class="d-inline"
+                                          onsubmit="return confirm('Remover a seção “<?= e($secao['title']) ?>” da Home?')">
+                                        <?= csrf_field() ?>
+                                        <button class="btn btn-sm btn-outline-danger" title="Excluir">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        <?php } ?>
+                    </tbody>
+                </table>
+            </div>
+        <?php } ?>
+    </div>
+</div>
+
+<!-- Modal: seção da Home -->
+<div class="modal" id="secaoModal" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <form method="POST" action="/admin/cms/home/secoes" id="secaoForm" class="modal-content">
+            <?= csrf_field() ?>
+            <div class="modal-header">
+                <h5 class="modal-title" id="secaoTitulo"><i class="bi bi-plus-square me-2"></i>Nova seção</h5>
+                <button type="button" class="btn-close" onclick="fecharSecao()" aria-label="Fechar"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row g-3">
+                    <div class="col-md-8">
+                        <label class="form-label">Título *</label>
+                        <input type="text" name="title" id="secaoTitle" class="form-control" required maxlength="255" placeholder="Ex.: Onde atendemos">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Ordem</label>
+                        <input type="number" name="sort_order" id="secaoOrdem" class="form-control" value="0">
+                        <div class="form-text">Use as setas na lista para reordenar.</div>
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label">Subtítulo</label>
+                        <input type="text" name="subtitle" id="secaoSubtitle" class="form-control" maxlength="255">
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label">Conteúdo</label>
+                        <textarea name="content" id="secaoContent" class="form-control" rows="5"
+                                  placeholder="Texto da seção. Aceita HTML simples (listas, negrito, parágrafos)."></textarea>
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label">Imagem (opcional)</label>
+                        <div class="media-field" data-media-field data-media-type="image" id="secaoMediaField">
+                            <div class="media-field-body">
+                                <div class="media-field-preview" data-media-preview><i class="bi bi-image"></i></div>
+                                <div class="media-field-main">
+                                    <input type="text" class="form-control form-control-sm" name="image" id="secaoImage" data-media-input autocomplete="off">
+                                    <div class="media-field-actions">
+                                        <button type="button" class="btn btn-outline-primary btn-sm" data-media-open><i class="bi bi-images me-1"></i> Biblioteca</button>
+                                        <button type="button" class="btn btn-outline-secondary btn-sm" data-media-upload><i class="bi bi-cloud-upload me-1"></i> Enviar</button>
+                                        <button type="button" class="btn btn-outline-danger btn-sm" data-media-clear><i class="bi bi-x-lg"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Texto do link</label>
+                        <input type="text" name="link_text" id="secaoLinkText" class="form-control" maxlength="255" placeholder="Ex.: Fale conosco">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">URL do link</label>
+                        <input type="text" name="link_url" id="secaoLinkUrl" class="form-control" maxlength="500" placeholder="/orcamento">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light btn-sm" onclick="fecharSecao()">Cancelar</button>
+                <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-check-lg me-1"></i>Salvar seção</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function abrirSecao(botao) {
+    var form = document.getElementById('secaoForm');
+    var modal = document.getElementById('secaoModal');
+    var dados = botao && botao.dataset.secao ? JSON.parse(botao.dataset.secao) : null;
+
+    if (dados) {
+        form.setAttribute('action', '/admin/cms/home/secoes/' + dados.id);
+        document.getElementById('secaoTitulo').innerHTML = '<i class="bi bi-pencil-square me-2"></i>Editar seção';
+    } else {
+        form.setAttribute('action', '/admin/cms/home/secoes');
+        document.getElementById('secaoTitulo').innerHTML = '<i class="bi bi-plus-square me-2"></i>Nova seção';
+    }
+
+    document.getElementById('secaoTitle').value = dados ? dados.title : '';
+    document.getElementById('secaoSubtitle').value = dados ? dados.subtitle : '';
+    document.getElementById('secaoContent').value = dados ? dados.content : '';
+    document.getElementById('secaoImage').value = dados ? dados.image : '';
+    document.getElementById('secaoLinkText').value = dados ? dados.link_text : '';
+    document.getElementById('secaoLinkUrl').value = dados ? dados.link_url : '';
+    document.getElementById('secaoOrdem').value = dados ? dados.sort_order : 0;
+
+    var preview = document.querySelector('#secaoMediaField [data-media-preview]');
+    if (preview) {
+        preview.innerHTML = dados && dados.image
+            ? '<img src="' + dados.image + '" alt="">'
+            : '<i class="bi bi-image"></i>';
+    }
+
+    if (window.MediaPicker && typeof window.MediaPicker.initFields === 'function') {
+        window.MediaPicker.initFields(document.getElementById('secaoMediaField'));
+    }
+
+    modal.classList.add('show');
+    document.body.style.overflow = 'hidden';
+}
+
+function fecharSecao() {
+    document.getElementById('secaoModal').classList.remove('show');
+    document.body.style.overflow = '';
+}
+
+document.getElementById('secaoModal').addEventListener('click', function (evento) {
+    if (evento.target === this) { fecharSecao(); }
+});
+
+document.addEventListener('keydown', function (evento) {
+    if (evento.key === 'Escape' && document.getElementById('secaoModal').classList.contains('show')) {
+        fecharSecao();
+    }
+});
+</script>
+
 <script>
 let difCount = <?= e(count($difList ?? [])) ?>;
 let depCount = <?= e(count($depList ?? [])) ?>;

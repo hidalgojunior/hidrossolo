@@ -69,6 +69,12 @@ $router->group(['prefix' => 'admin', 'middleware' => [AuthMiddleware::class, Csr
     $router->get('/cms/home', [CMSController::class, 'home']);
     $router->post('/cms/home', [CMSController::class, 'updateHome']);
 
+    // Seções livres da Home (incluir, editar, reordenar e excluir)
+    $router->post('/cms/home/secoes', [CMSController::class, 'storeSection']);
+    $router->post('/cms/home/secoes/{id}', [CMSController::class, 'updateSection']);
+    $router->post('/cms/home/secoes/{id}/mover', [CMSController::class, 'moveSection']);
+    $router->post('/cms/home/secoes/{id}/excluir', [CMSController::class, 'deleteSection']);
+
     // CMS - Empresa
     $router->get('/cms/empresa', [CMSController::class, 'empresa']);
     $router->post('/cms/empresa', [CMSController::class, 'updateEmpresa']);

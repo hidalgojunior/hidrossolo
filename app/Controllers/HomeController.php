@@ -26,6 +26,7 @@ class HomeController extends BaseController
         $servicosSection = null;
         $ctaSection = null;
         $diferenciais = [];
+        $secoes = [];
 
         if ($homePage) {
             $banners = PageContent::findAllBySection($homePage->id, 'banners');
@@ -34,6 +35,7 @@ class HomeController extends BaseController
             $depoimentos = PageContent::findAllBySection($homePage->id, 'depoimentos');
             $ctaSection = PageContent::findByPageAndSection($homePage->id, 'cta');
             $diferenciais = PageContent::findAllBySection($homePage->id, 'diferenciais');
+            $secoes = PageContent::findAllBySection($homePage->id, 'secao');
         }
 
         echo $this->view('pages.home', [
@@ -46,6 +48,7 @@ class HomeController extends BaseController
             'depoimentos' => array_map(fn($d) => $d->toArray(), $depoimentos),
             'diferenciais' => array_map(fn($d) => $d->toArray(), $diferenciais),
             'ctaSection' => $ctaSection ? $ctaSection->toArray() : null,
+            'secoes' => array_map(fn($s) => $s->toArray(), $secoes),
             'config' => $this->config('company'),
             'seo' => $this->config('seo'),
         ]);

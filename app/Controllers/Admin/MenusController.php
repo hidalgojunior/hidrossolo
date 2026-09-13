@@ -37,11 +37,17 @@ class MenusController extends BaseController
         $this->redirect('/admin/menus');
     }
 
-    public function items(string $menuId): void
+    /**
+     * Itens de um menu.
+     *
+     * Atenção: o Router injeta os parâmetros da rota por nome (PHP 8), então o
+     * parâmetro precisa se chamar exatamente como o curinga da rota (`{id}`).
+     */
+    public function items(string $id): void
     {
         $db = $this->db();
 
-        $menu = $db->fetch("SELECT * FROM menus WHERE id = ?", [$menuId]);
+        $menu = $db->fetch("SELECT * FROM menus WHERE id = ?", [$id]);
         if (!$menu) {
             $_SESSION['flash_error'] = 'Menu não encontrado.';
             $this->redirect('/admin/menus');
@@ -49,7 +55,7 @@ class MenusController extends BaseController
 
         $items = $db->fetchAll(
             "SELECT * FROM menu_items WHERE menu_id = ? ORDER BY sort_order",
-            [$menuId]
+            [$id]
         );
 
         // Buscar páginas para sugestão de links
@@ -66,7 +72,7 @@ class MenusController extends BaseController
         ]);
     }
 
-    public function storeItem(string $menuId): void
+    public function storeItem(string $id): void
     {
         $data = $this->validate([
             'title' => 'required|max:255',
@@ -74,7 +80,7 @@ class MenusController extends BaseController
         ]);
 
         $this->db()->insert('menu_items', [
-            'menu_id' => (int)$menuId,
+            'menu_id' => (int)$id,
             'parent_id' => !empty($_POST['parent_id']) ? (int)$_POST['parent_id'] : null,
             'title' => $data['title'],
             'url' => $data['url'],
@@ -83,45 +89,48 @@ class MenusController extends BaseController
         ]);
 
         $_SESSION['flash_success'] = 'Item adicionado ao menu!';
-        $this->redirect('/admin/menus/' . $menuId . '/itens');
+        $this->redirect('/admin/menus/' . $id . '/itens');
     }
 
-    public function updateItem(string $menuId, string $itemId): void
+    public function updateItem(string $id, string $itemId): void
     {
         $db = $this->db();
 
-        $item = $db->fetch("SELECT * FROM menu_items WHERE id = ? AND menu_id = ?", [(int)$itemId, (int)$menuId]);
+        $item = $db->fetch("SELECT * FROM menu_items WHERE id = ? AND menu_id = ?", [(int)$itemId, (int)$id]);
         if (!$item) {
             $_SESSION['flash_error'] = 'Item não encontrado.';
-            $this->redirect('/admin/menus/' . $menuId . '/itens');
+            $this->redirect('/admin/menus/' . $id . '/itens');
         }
+
+        $parentId = trim((string) ($_POST['parent_id'] ?? ''));
 
         $db->update('menu_items', [
             'title' => $_POST['title'] ?? $item['title'],
             'url' => $_POST['url'] ?? $item['url'],
-            'parent_id' => $_POST['parent_id'] !== '' ? (int)$_POST['parent_id'] : null,
+            'parent_id' => $parentId !== '' && $parentId !== '0' ? (int) $parentId : null,
+            'target' => $_POST['target'] ?? $item['target'],
             'sort_order' => (int)($_POST['sort_order'] ?? 0),
         ], 'id = ?', [(int)$itemId]);
 
         $_SESSION['flash_success'] = 'Item atualizado!';
-        $this->redirect('/admin/menus/' . $menuId . '/itens');
+        $this->redirect('/admin/menus/' . $id . '/itens');
     }
 
-    public function deleteItem(string $menuId, string $itemId): void
+    public function deleteItem(string $id, string $itemId): void
     {
         $db = $this->db();
-        $db->delete('menu_items', 'id = ? AND menu_id = ?', [(int)$itemId, (int)$menuId]);
+        $db->delete('menu_items', 'id = ? AND menu_id = ?', [(int)$itemId, (int)$id]);
         $_SESSION['flash_success'] = 'Item removido!';
-        $this->redirect('/admin/menus/' . $menuId . '/itens');
+        $this->redirect('/admin/menus/' . $id . '/itens');
     }
 
-    public function reorder(string $menuId): void
+    public function reorder(string $id): void
     {
         $input = json_decode(file_get_contents('php://input'), true);
         $order = $input['order'] ?? [];
         $db = $this->db();
-        foreach ($order as $index => $id) {
-            $db->update('menu_items', ['sort_order' => $index], 'id = ? AND menu_id = ?', [(int)$id, (int)$menuId]);
+        foreach ($order as $index => $itemId) {
+            $db->update('menu_items', ['sort_order' => $index], 'id = ? AND menu_id = ?', [(int)$itemId, (int)$id]);
         }
         $this->json(['success' => true]);
     }
