@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#101a2e">
-    <title>Sem conexão — Área do Motorista</title>
+    <title>Sem conexão — Hidrossolo</title>
     <style>
         * { box-sizing: border-box; }
         body {
@@ -20,7 +20,19 @@
             text-align: center;
         }
         .box { max-width: 420px; }
-        img { height: 64px; margin-bottom: 1.25rem; }
+        .marca {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 64px;
+            height: 64px;
+            margin-bottom: 1.25rem;
+            border-radius: 18px;
+            background: linear-gradient(135deg, #1e40af, #3b82f6);
+            color: #fff;
+            font-size: 1.6rem;
+            font-weight: 700;
+        }
         h1 { font-size: 1.4rem; margin: 0 0 .6rem; color: #fff; }
         p { color: #94a3b8; font-size: .92rem; line-height: 1.6; margin: 0 0 1.5rem; }
         .tag {
@@ -50,17 +62,16 @@
 </head>
 <body>
     <div class="box">
-        <img src="/assets/pwa/icon-512.png" alt="Hidrossolo">
+        <div class="marca" aria-hidden="true">H</div>
         <div class="tag">Modo offline</div>
         <h1>Você está sem conexão</h1>
         <p>
-            Não foi possível carregar esta página agora. Os lançamentos que você fizer
-            continuam salvos no aparelho e serão enviados automaticamente quando a
-            internet voltar.
+            Não foi possível carregar esta página agora. Verifique a conexão do aparelho
+            e tente novamente.
         </p>
         <button type="button" onclick="window.location.reload()">Tentar novamente</button>
         <div class="hint">
-            Dica: use o Wi-Fi ou vá até um ponto com sinal. Nada do que você digitou é perdido.
+            Dica: o app continua instalado no seu celular — ao voltar o sinal, os dados são carregados normalmente.
         </div>
     </div>
 </body>

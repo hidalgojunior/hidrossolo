@@ -1,0 +1,68 @@
+{
+    "name": "Hidrossolo — Painel do Gestor",
+    "short_name": "Hidrossolo ADM",
+    "description": "Agenda, contas a pagar e a receber, abastecimentos e manutenções da frota no celular.",
+    "id": "/admin",
+    "start_url": "/admin/?source=pwa",
+    "scope": "/admin",
+    "display": "standalone",
+    "display_override": ["standalone", "minimal-ui"],
+    "orientation": "any",
+    "background_color": "#eef2f9",
+    "theme_color": "#101a2e",
+    "lang": "pt-BR",
+    "dir": "ltr",
+    "categories": ["business", "productivity", "finance"],
+    "icons": [
+        {
+            "src": "/assets/pwa/admin-192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "/assets/pwa/admin-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "/assets/pwa/admin-maskable-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "maskable"
+        }
+    ],
+    "shortcuts": [
+        {
+            "name": "Agenda e compromissos",
+            "short_name": "Agenda",
+            "url": "/admin/agenda",
+            "icons": [{ "src": "/assets/pwa/admin-192.png", "sizes": "192x192" }]
+        },
+        {
+            "name": "Contas a pagar",
+            "short_name": "A pagar",
+            "url": "/admin/financeiro?kind=expense&status=pending",
+            "icons": [{ "src": "/assets/pwa/admin-192.png", "sizes": "192x192" }]
+        },
+        {
+            "name": "Contas a receber",
+            "short_name": "A receber",
+            "url": "/admin/financeiro?kind=income&status=pending",
+            "icons": [{ "src": "/assets/pwa/admin-192.png", "sizes": "192x192" }]
+        },
+        {
+            "name": "Novo abastecimento",
+            "short_name": "Abastecer",
+            "url": "/admin/abastecimentos/novo",
+            "icons": [{ "src": "/assets/pwa/admin-192.png", "sizes": "192x192" }]
+        },
+        {
+            "name": "Nova manutenção",
+            "short_name": "Manutenção",
+            "url": "/admin/manutencoes/novo",
+            "icons": [{ "src": "/assets/pwa/admin-192.png", "sizes": "192x192" }]
+        }
+    ]
+}

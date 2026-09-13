@@ -33,6 +33,48 @@
     </div>
 </div>
 
+<!-- Atalhos do app (PWA do gestor) -->
+<div class="card mb-4">
+    <div class="card-header bg-white">
+        <strong><i class="bi bi-lightning-charge me-1"></i> Atalhos rápidos</strong>
+        <div class="small text-muted">Agenda, contas e lançamentos da frota — inclusive pelo celular.</div>
+    </div>
+    <div class="card-body">
+        <div class="row g-2">
+            <div class="col-6 col-md-3 col-xl-2">
+                <a href="/admin/agenda" class="btn btn-outline-primary w-100 py-3">
+                    <i class="bi bi-calendar3 d-block fs-5 mb-1"></i>Agenda
+                </a>
+            </div>
+            <div class="col-6 col-md-3 col-xl-2">
+                <a href="/admin/financeiro?kind=expense&status=pending" class="btn btn-outline-danger w-100 py-3">
+                    <i class="bi bi-arrow-up-circle d-block fs-5 mb-1"></i>A pagar
+                </a>
+            </div>
+            <div class="col-6 col-md-3 col-xl-2">
+                <a href="/admin/financeiro?kind=income&status=pending" class="btn btn-outline-success w-100 py-3">
+                    <i class="bi bi-arrow-down-circle d-block fs-5 mb-1"></i>A receber
+                </a>
+            </div>
+            <div class="col-6 col-md-3 col-xl-2">
+                <a href="/admin/abastecimentos/novo" class="btn btn-outline-secondary w-100 py-3">
+                    <i class="bi bi-fuel-pump d-block fs-5 mb-1"></i>Abastecer
+                </a>
+            </div>
+            <div class="col-6 col-md-3 col-xl-2">
+                <a href="/admin/manutencoes/novo" class="btn btn-outline-secondary w-100 py-3">
+                    <i class="bi bi-wrench d-block fs-5 mb-1"></i>Manutenção
+                </a>
+            </div>
+            <div class="col-6 col-md-3 col-xl-2">
+                <a href="/admin/financeiro" class="btn btn-outline-primary w-100 py-3">
+                    <i class="bi bi-cash-coin d-block fs-5 mb-1"></i>Fluxo de caixa
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Frota & Equipamentos -->
 <div class="card mb-4">
     <div class="card-header bg-white d-flex flex-wrap justify-content-between align-items-center gap-2">

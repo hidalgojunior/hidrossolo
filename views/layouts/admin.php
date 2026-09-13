@@ -6,6 +6,16 @@
     <title><?= e($title ?? 'Admin') ?> - Hidrossolo</title>
     <meta name="csrf-token" content="<?= e(csrf_token()) ?>">
 
+    <!-- App instalável (PWA do gestor): agenda, contas a pagar/receber e frota -->
+    <meta name="theme-color" content="#101a2e">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Hidrossolo ADM">
+    <link rel="manifest" href="/manifest-admin.webmanifest">
+    <link rel="apple-touch-icon" href="/assets/pwa/admin-192.png">
+    <link rel="icon" type="image/png" href="/assets/pwa/admin-192.png">
+
     <!-- Design system próprio (sem frameworks) -->
     <link rel="stylesheet" href="<?= e(asset_v('assets/css/app.css')) ?>">
     <link rel="stylesheet" href="<?= e(asset_v('assets/css/media.css')) ?>">
@@ -238,6 +248,14 @@
 
     <!-- Main Content -->
     <div class="main-content" id="mainContent">
+
+        <!-- Convite para instalar o app no celular -->
+        <div class="admin-pwa-install" data-admin-pwa-install style="display:none">
+            <i class="bi bi-phone"></i>
+            <span>Instale o app para acessar a agenda, as contas e os abastecimentos pelo celular.</span>
+            <button type="button" data-admin-pwa-install-btn>Instalar</button>
+            <button type="button" class="close" data-admin-pwa-install-dismiss aria-label="Fechar">&#10005;</button>
+        </div>
         <!-- Topbar -->
         <div class="topbar">
             <button class="btn btn-outline-secondary btn-menu" onclick="toggleSidebar()" title="Menu">
@@ -296,6 +314,7 @@
 
     <script src="<?= e(asset_v('assets/js/ui.js')) ?>"></script>
     <script src="<?= e(asset_v('assets/js/media-picker.js')) ?>"></script>
+    <script src="<?= e(asset_v('assets/js/admin-pwa.js')) ?>" defer></script>
     <!-- Summernote + jQuery (editor de conteúdo) -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/summernote@0.8.20/dist/summernote-lite.min.js"></script>
