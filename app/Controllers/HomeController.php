@@ -8,6 +8,7 @@ use App\Core\BaseController;
 use App\Models\Service;
 use App\Models\Page;
 use App\Models\PageContent;
+use App\Support\HomeBlocks;
 
 class HomeController extends BaseController
 {
@@ -38,6 +39,16 @@ class HomeController extends BaseController
             $secoes = PageContent::findAllBySection($homePage->id, 'secao');
         }
 
+        // Blocos da Home: ordem e visibilidade definidos no CMS
+        $blocos = $homePage ? $this->db()->fetchAll(
+            "SELECT block, enabled FROM page_blocks WHERE page_id = ? ORDER BY sort_order, id",
+            [$homePage->id]
+        ) : [];
+
+        if ($blocos === []) {
+            $blocos = HomeBlocks::padrao();
+        }
+
         echo $this->view('pages.home', [
             'title' => 'Hidrossolo Poços Artesianos',
             'banners' => array_map(fn($b) => $b->toArray(), $banners),
@@ -49,6 +60,7 @@ class HomeController extends BaseController
             'diferenciais' => array_map(fn($d) => $d->toArray(), $diferenciais),
             'ctaSection' => $ctaSection ? $ctaSection->toArray() : null,
             'secoes' => array_map(fn($s) => $s->toArray(), $secoes),
+            'blocos' => $blocos,
             'config' => $this->config('company'),
             'seo' => $this->config('seo'),
         ]);

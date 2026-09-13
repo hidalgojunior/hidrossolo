@@ -75,6 +75,12 @@ $router->group(['prefix' => 'admin', 'middleware' => [AuthMiddleware::class, Csr
     $router->post('/cms/home/secoes/{id}/mover', [CMSController::class, 'moveSection']);
     $router->post('/cms/home/secoes/{id}/excluir', [CMSController::class, 'deleteSection']);
 
+    // Blocos da Home (exibir/ocultar e reordenar)
+    // A rota "restaurar" precisa vir antes do curinga {bloco}
+    $router->post('/cms/home/blocos/restaurar', [CMSController::class, 'resetBlocks']);
+    $router->post('/cms/home/blocos/{bloco}/mover', [CMSController::class, 'moveBlock']);
+    $router->post('/cms/home/blocos/{bloco}', [CMSController::class, 'toggleBlock']);
+
     // CMS - Empresa
     $router->get('/cms/empresa', [CMSController::class, 'empresa']);
     $router->post('/cms/empresa', [CMSController::class, 'updateEmpresa']);

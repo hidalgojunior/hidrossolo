@@ -5,6 +5,81 @@
     <h4 class="mb-0">Gerenciar Home</h4>
 </div>
 
+<!-- Blocos da Home: exibir/ocultar e reordenar -->
+<div class="card mb-4">
+    <div class="card-header bg-white d-flex flex-wrap justify-content-between align-items-center gap-2">
+        <div>
+            <h5 class="mb-0">🧱 Blocos da Home</h5>
+            <small class="text-muted">Marque para exibir, desmarque para remover da página e use as setas para mudar a ordem.</small>
+        </div>
+        <form method="POST" action="/admin/cms/home/blocos/restaurar"
+              onsubmit="return confirm('Restaurar a ordem e a exibição padrão de todos os blocos?')">
+            <?= csrf_field() ?>
+            <button class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-arrow-counterclockwise me-1"></i>Restaurar padrão
+            </button>
+        </form>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th style="width:70px">Ordem</th>
+                        <th>Bloco</th>
+                        <th style="width:110px" class="text-center">Exibir</th>
+                        <th style="width:120px" class="text-end">Mover</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach (($blocos ?? []) as $indiceBloco => $bloco) { ?>
+                        <?php $chave = (string) $bloco['block']; ?>
+                        <tr class="<?= empty($bloco['enabled']) ? 'opacity-50' : '' ?>">
+                            <td><span class="badge bg-secondary"><?= e((int) $bloco['sort_order']) ?></span></td>
+                            <td>
+                                <i class="bi <?= e($catalogoBlocos[$chave]['icon'] ?? 'bi-square') ?> me-1 text-primary"></i>
+                                <strong><?= e($catalogoBlocos[$chave]['label'] ?? $chave) ?></strong>
+                                <?php if (!empty($catalogoBlocos[$chave]['hint'])) { ?>
+                                    <div class="small text-muted"><?= e($catalogoBlocos[$chave]['hint']) ?></div>
+                                <?php } ?>
+                            </td>
+                            <td class="text-center">
+                                <form method="POST" action="/admin/cms/home/blocos/<?= e($chave) ?>">
+                                    <?= csrf_field() ?>
+                                    <input type="hidden" name="enabled" value="<?= empty($bloco['enabled']) ? '1' : '0' ?>">
+                                    <div class="form-check form-switch d-inline-block">
+                                        <input class="form-check-input" type="checkbox" role="switch"
+                                               id="bloco-<?= e($chave) ?>"
+                                               <?= empty($bloco['enabled']) ? '' : 'checked' ?>
+                                               onchange="this.form.submit()"
+                                               title="<?= empty($bloco['enabled']) ? 'Exibir na Home' : 'Remover da Home' ?>">
+                                    </div>
+                                </form>
+                            </td>
+                            <td class="text-end text-nowrap">
+                                <form method="POST" action="/admin/cms/home/blocos/<?= e($chave) ?>/mover" class="d-inline">
+                                    <?= csrf_field() ?>
+                                    <input type="hidden" name="direcao" value="cima">
+                                    <button class="btn btn-sm btn-outline-secondary" title="Mover para cima" <?= $indiceBloco === 0 ? 'disabled' : '' ?>>
+                                        <i class="bi bi-arrow-up"></i>
+                                    </button>
+                                </form>
+                                <form method="POST" action="/admin/cms/home/blocos/<?= e($chave) ?>/mover" class="d-inline">
+                                    <?= csrf_field() ?>
+                                    <input type="hidden" name="direcao" value="baixo">
+                                    <button class="btn btn-sm btn-outline-secondary" title="Mover para baixo" <?= $indiceBloco === count($blocos) - 1 ? 'disabled' : '' ?>>
+                                        <i class="bi bi-arrow-down"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    <?php } ?>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
 <?php
     $sectionMap = [];
     foreach ($sections as $s) {

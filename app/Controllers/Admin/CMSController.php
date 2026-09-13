@@ -6,6 +6,7 @@ namespace App\Controllers\Admin;
 
 use App\Core\BaseController;
 use App\Core\Security;
+use App\Support\HomeBlocks;
 
 class CMSController extends BaseController
 {
@@ -36,6 +37,8 @@ class CMSController extends BaseController
             'page' => $page,
             'sections' => $sections,
             'secoes' => $secoes,
+            'blocos' => $page ? $this->blocos((int) $page['id']) : [],
+            'catalogoBlocos' => HomeBlocks::catalogo(),
             'config' => $this->config('company'),
         ]);
     }
@@ -198,6 +201,150 @@ class CMSController extends BaseController
     }
 
     /* ===================================================================== */
+
+    /**
+     * Blocos da Home: exibe/oculta um bloco.
+     */
+    public function toggleBlock(string $bloco): void
+    {
+        $registro = $this->bloco($bloco);
+
+        $this->db()->update('page_blocks', [
+            'enabled' => !empty($_POST['enabled']) ? 1 : 0,
+        ], 'id = ?', [(int) $registro['id']]);
+
+        Security::audit('home_block_toggled', 'page_blocks', (int) $registro['id'], [
+            'block' => $bloco,
+            'enabled' => !empty($_POST['enabled']) ? 1 : 0,
+        ]);
+
+        $_SESSION['flash_success'] = !empty($_POST['enabled'])
+            ? 'Bloco “' . HomeBlocks::label($bloco) . '” agora aparece na Home.'
+            : 'Bloco “' . HomeBlocks::label($bloco) . '” foi removido da Home.';
+
+        $this->redirect('/admin/cms/home');
+    }
+
+    /**
+     * Blocos da Home: move o bloco para cima ou para baixo.
+     */
+    public function moveBlock(string $bloco): void
+    {
+        $registro = $this->bloco($bloco);
+        $direcao = ($_POST['direcao'] ?? 'cima') === 'baixo' ? 'baixo' : 'cima';
+        $db = $this->db();
+
+        $vizinho = $db->fetch(
+            $direcao === 'cima'
+                ? 'SELECT * FROM page_blocks WHERE page_id = ? AND (sort_order < ? OR (sort_order = ? AND id < ?)) ORDER BY sort_order DESC, id DESC LIMIT 1'
+                : 'SELECT * FROM page_blocks WHERE page_id = ? AND (sort_order > ? OR (sort_order = ? AND id > ?)) ORDER BY sort_order ASC, id ASC LIMIT 1',
+            [$registro['page_id'], $registro['sort_order'], $registro['sort_order'], $registro['id']]
+        );
+
+        if ($vizinho) {
+            $db->update('page_blocks', ['sort_order' => $vizinho['sort_order']], 'id = ?', [(int) $registro['id']]);
+            $db->update('page_blocks', ['sort_order' => $registro['sort_order']], 'id = ?', [(int) $vizinho['id']]);
+        }
+
+        $this->redirect('/admin/cms/home');
+    }
+
+    /**
+     * Restaura a ordem e a exibição padrão dos blocos da Home.
+     */
+    public function resetBlocks(): void
+    {
+        $pageId = $this->pageId();
+        $db = $this->db();
+
+        foreach (HomeBlocks::PADRAO as $ordem => $bloco) {
+            $existente = $db->fetch(
+                'SELECT id FROM page_blocks WHERE page_id = ? AND block = ?',
+                [$pageId, $bloco]
+            );
+
+            if ($existente) {
+                $db->update('page_blocks', [
+                    'sort_order' => $ordem + 1,
+                    'enabled' => 1,
+                ], 'id = ?', [(int) $existente['id']]);
+            } else {
+                $db->insert('page_blocks', [
+                    'page_id' => $pageId,
+                    'block' => $bloco,
+                    'sort_order' => $ordem + 1,
+                    'enabled' => 1,
+                ]);
+            }
+        }
+
+        Security::audit('home_blocks_reset', 'page_blocks', null, ['page_id' => $pageId]);
+
+        $_SESSION['flash_success'] = 'Ordem e exibição dos blocos restauradas ao padrão.';
+        $this->redirect('/admin/cms/home');
+    }
+
+    /* ===================================================================== */
+
+    /**
+     * Lista os blocos da Home na ordem configurada (auto-recupera se vazia).
+     *
+     * @return array<int,array<string,mixed>>
+     */
+    private function blocos(int $pageId): array
+    {
+        $db = $this->db();
+        $blocos = $db->fetchAll(
+            'SELECT * FROM page_blocks WHERE page_id = ? ORDER BY sort_order, id',
+            [$pageId]
+        );
+
+        if ($blocos !== []) {
+            return $blocos;
+        }
+
+        foreach (HomeBlocks::PADRAO as $ordem => $bloco) {
+            $db->insert('page_blocks', [
+                'page_id' => $pageId,
+                'block' => $bloco,
+                'sort_order' => $ordem + 1,
+                'enabled' => 1,
+            ]);
+        }
+
+        return $db->fetchAll(
+            'SELECT * FROM page_blocks WHERE page_id = ? ORDER BY sort_order, id',
+            [$pageId]
+        );
+    }
+
+    /**
+     * Carrega um bloco válido da Home.
+     *
+     * @return array<string,mixed>
+     */
+    private function bloco(string $chave): array
+    {
+        if (!array_key_exists($chave, HomeBlocks::catalogo())) {
+            $_SESSION['flash_error'] = 'Bloco não encontrado.';
+            $this->redirect('/admin/cms/home');
+        }
+
+        $pageId = $this->pageId();
+        $this->blocos($pageId);
+
+        $bloco = $this->db()->fetch(
+            'SELECT * FROM page_blocks WHERE page_id = ? AND block = ?',
+            [$pageId, $chave]
+        );
+
+        if (!$bloco) {
+            $_SESSION['flash_error'] = 'Bloco não encontrado.';
+            $this->redirect('/admin/cms/home');
+        }
+
+        return $bloco;
+    }
 
     /**
      * Garante (e devolve) o id da página Home.
