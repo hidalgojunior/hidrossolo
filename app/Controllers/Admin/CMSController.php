@@ -76,6 +76,9 @@ class CMSController extends BaseController
             'sort_order' => 0,
         ]);
 
+        // Estatísticas (valor em `title`, rótulo em `subtitle`, ícone em `content`)
+        $this->saveSectionItems($db, $pageId, 'estatisticas', $_POST['section_estatisticas'] ?? []);
+
         // Diferenciais
         $this->saveSectionItems($db, $pageId, 'diferenciais', $_POST['section_diferenciais'] ?? []);
 

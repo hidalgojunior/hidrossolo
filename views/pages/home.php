@@ -19,7 +19,7 @@ $diferenciaisFallback = [
     ['title' => 'Responsabilidade Ambiental', 'content' => 'Atuação em conformidade com as normas técnicas e ambientais vigentes.'],
 ];
 
-$stats = [
+$statsFallback = [
     ['value' => '+20', 'label' => 'Anos de experiência', 'icon' => 'calendar'],
     ['value' => '+1.500', 'label' => 'Poços perfurados', 'icon' => 'droplet'],
     ['value' => '100%', 'label' => 'Regularização ambiental', 'icon' => 'shield-check'],
@@ -28,6 +28,7 @@ $stats = [
 
 $servicos = !empty($servicos) ? $servicos : $servicosFallback;
 $diferenciais = !empty($diferenciais) ? $diferenciais : $diferenciaisFallback;
+$stats = !empty($stats) ? $stats : $statsFallback;
 $heroTitle = !empty($hero['title']) ? $hero['title'] : 'Soluções completas em poços artesianos';
 $heroSubtitle = !empty($hero['subtitle']) ? $hero['subtitle'] : 'Perfuração, licenciamento, limpeza e manutenção com equipe especializada em Marília e região.';
 ?>

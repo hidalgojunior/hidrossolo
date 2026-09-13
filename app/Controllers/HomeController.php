@@ -28,6 +28,7 @@ class HomeController extends BaseController
         $ctaSection = null;
         $diferenciais = [];
         $secoes = [];
+        $stats = [];
 
         if ($homePage) {
             $banners = PageContent::findAllBySection($homePage->id, 'banners');
@@ -37,6 +38,18 @@ class HomeController extends BaseController
             $ctaSection = PageContent::findByPageAndSection($homePage->id, 'cta');
             $diferenciais = PageContent::findAllBySection($homePage->id, 'diferenciais');
             $secoes = PageContent::findAllBySection($homePage->id, 'secao');
+
+            // Estatísticas: valor em `title`, rótulo em `subtitle`, ícone em `content`
+            foreach (PageContent::findAllBySection($homePage->id, 'estatisticas') as $linha) {
+                $dados = $linha->toArray();
+                $icone = trim((string) ($dados['content'] ?? ''));
+
+                $stats[] = [
+                    'value' => (string) ($dados['title'] ?? ''),
+                    'label' => (string) ($dados['subtitle'] ?? ''),
+                    'icon' => $icone !== '' ? $icone : 'star',
+                ];
+            }
         }
 
         // Blocos da Home: ordem e visibilidade definidos no CMS
@@ -61,6 +74,7 @@ class HomeController extends BaseController
             'ctaSection' => $ctaSection ? $ctaSection->toArray() : null,
             'secoes' => array_map(fn($s) => $s->toArray(), $secoes),
             'blocos' => $blocos,
+            'stats' => $stats,
             'config' => $this->config('company'),
             'seo' => $this->config('seo'),
         ]);

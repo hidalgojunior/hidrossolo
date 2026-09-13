@@ -117,6 +117,55 @@
         </div>
     </div>
 
+    <!-- Estatísticas -->
+    <div class="card mb-4">
+        <div class="card-header bg-white">
+            <h5 class="mb-0">📊 Estatísticas</h5>
+            <small class="text-muted">Números exibidos na faixa logo abaixo do banner principal.</small>
+        </div>
+        <div class="card-body" id="stats-container">
+            <?php $statsList = $sectionMap['estatisticas'] ?? []; ?>
+            <?php foreach ($statsList as $i => $item) { ?>
+            <div class="row g-3 mb-3 stats-item border-bottom pb-3">
+                <div class="col-md-3">
+                    <label class="form-label">Valor</label>
+                    <input type="text" name="section_estatisticas[<?= e($i) ?>][title]" class="form-control" value="<?= e($item['title']) ?>" placeholder="+20">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Rótulo</label>
+                    <input type="text" name="section_estatisticas[<?= e($i) ?>][subtitle]" class="form-control" value="<?= e($item['subtitle']) ?>" placeholder="Anos de experiência">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Ícone</label>
+                    <input type="text" name="section_estatisticas[<?= e($i) ?>][content]" class="form-control" value="<?= e($item['content']) ?>" list="iconesStats" placeholder="calendar">
+                    <div class="form-text">Nome do ícone do Bootstrap Icons, sem o “bi-”.</div>
+                </div>
+                <div class="col-md-1 d-flex align-items-end">
+                    <button type="button" class="btn btn-outline-danger btn-sm" onclick="this.closest('.stats-item').remove()" title="Remover">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </div>
+            </div>
+            <?php } ?>
+            <button type="button" class="btn btn-sm btn-outline-primary" onclick="addStatItem()">+ Adicionar Estatística</button>
+        </div>
+    </div>
+
+    <datalist id="iconesStats">
+        <option value="calendar"></option>
+        <option value="droplet"></option>
+        <option value="shield-check"></option>
+        <option value="geo-alt"></option>
+        <option value="people"></option>
+        <option value="truck"></option>
+        <option value="award"></option>
+        <option value="graph-up"></option>
+        <option value="check2-circle"></option>
+        <option value="star"></option>
+        <option value="tools"></option>
+        <option value="water"></option>
+    </datalist>
+
     <!-- Seção Serviços -->
     <div class="card mb-4">
         <div class="card-header bg-white"><h5 class="mb-0">📦 Seção de Serviços (Home)</h5></div>
@@ -463,6 +512,27 @@ document.addEventListener('keydown', function (evento) {
 </script>
 
 <script>
+let statsCount = <?= e(count($statsList ?? [])) ?>;
+function addStatItem() {
+    var h = '<div class="row g-3 mb-3 stats-item border-bottom pb-3">'
+        + '<div class="col-md-3"><label class="form-label">Valor</label>'
+        + '<input type="text" name="section_estatisticas[' + statsCount + '][title]" class="form-control" placeholder="+20"></div>'
+        + '<div class="col-md-4"><label class="form-label">Rótulo</label>'
+        + '<input type="text" name="section_estatisticas[' + statsCount + '][subtitle]" class="form-control" placeholder="Anos de experiência"></div>'
+        + '<div class="col-md-4"><label class="form-label">Ícone</label>'
+        + '<input type="text" name="section_estatisticas[' + statsCount + '][content]" class="form-control" list="iconesStats" placeholder="calendar">'
+        + '<div class="form-text">Nome do ícone do Bootstrap Icons, sem o “bi-”.</div></div>'
+        + '<div class="col-md-1 d-flex align-items-end">'
+        + '<button type="button" class="btn btn-outline-danger btn-sm" onclick="this.closest(\'.stats-item\').remove()" title="Remover"><i class="bi bi-trash"></i></button></div>'
+        + '</div>';
+
+    var container = document.getElementById('stats-container');
+    var t = document.createElement('template');
+    t.innerHTML = h.trim();
+    container.insertBefore(t.content.firstChild, container.lastElementChild);
+    statsCount++;
+}
+
 let difCount = <?= e(count($difList ?? [])) ?>;
 let depCount = <?= e(count($depList ?? [])) ?>;
 function addItem(containerId, prefix, countRef, fields) {
