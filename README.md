@@ -488,6 +488,69 @@ Implementado em `app/Core/Security.php` (carregado no bootstrap da aplicação):
 
 ---
 
+# Gestão operacional e financeira
+
+## Agenda & compromissos (`/admin/agenda`)
+
+Calendário mensal único que reúne, no mesmo dia:
+
+- **manutenções** da frota (revisão, inspeção, outros compromissos);
+- **contas a pagar** e **contas a receber** da empresa.
+
+Assim é possível enxergar de uma vez o que precisa ser pago, quando, e o que
+está programado para a frota. A tela traz os indicadores do mês
+(a receber, a pagar, saldo previsto e contas em atraso), as listas de
+**contas a vencer em 30 dias** e **contas em atraso**, e permite criar tanto um
+compromisso de manutenção quanto um lançamento financeiro direto no calendário
+(basta clicar no dia).
+
+Avisos automáticos são gerados **30, 15 e 7 dias** antes de cada compromisso.
+
+## Fluxo de caixa (`/admin/financeiro`)
+
+Contas a pagar e a receber com categorias por tipo de lançamento:
+
+- **Saídas**: combustível, manutenção, peças, pneus, salários, encargos,
+  impostos, aluguel, utilidades, licenças/outorgas, terceiros, frete,
+  marketing, seguros, tarifas bancárias, administrativas e outras.
+- **Entradas**: perfuração, limpeza, manutenção de poço, outorga e
+  licenciamento, laudos, materiais, locação, projetos e outras receitas.
+
+Recursos:
+
+- baixa (pagamento/recebimento) com data e forma de pagamento;
+- repetição **semanal, mensal, trimestral ou anual**, com geração automática do
+  próximo lançamento ao dar baixa;
+- vínculo opcional com um veículo/equipamento (custo por ativo);
+- filtros por mês, tipo, situação, ativo e busca livre;
+- gráfico de entradas × saídas do ano e resumo por categoria.
+
+## Notificações (`/admin/notificacoes`)
+
+Central acessível pelo sino da barra superior. Reúne os avisos de manutenção,
+alertas de contas a vencer e em atraso e eventos de segurança. Permite abrir o
+registro relacionado (marca como lida), marcar/desmarcar como lida, limpar as
+já lidas e reprocessar os avisos de manutenção pendentes.
+
+## Exportação em PDF e Excel (XLSX)
+
+Praticamente todas as telas operacionais têm **Exportar PDF** e **Exportar
+Excel**. Não é CSV: as planilhas são `.xlsx` reais, com cabeçalho colorido
+congelado, filtro automático, largura de colunas, bordas, linhas zebradas,
+linha de totais e formatos nativos de moeda (`R$ #,##0.00`) e data
+(`dd/mm/yyyy`) — abre direto no Excel, LibreOffice e Google Planilhas.
+
+Os PDFs são gerados em A4 (paisagem ou retrato) com cabeçalho da marca,
+cartões de resumo, tabela formatada e rodapé.
+
+Telas com exportação: **agenda**, **fluxo de caixa** (3 abas no Excel),
+**frota & equipamentos**, **relatórios de consumo** (2 abas),
+**manutenções** e **abastecimentos**.
+
+Os filtros aplicados na tela são respeitados no arquivo exportado.
+
+---
+
 # Segurança
 
 ## Autenticação

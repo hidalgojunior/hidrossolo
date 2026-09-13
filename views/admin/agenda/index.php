@@ -24,15 +24,26 @@ $anoSeguinte = $mes === 12 ? $ano + 1 : $ano;
 <?php $view->section('content'); ?>
 <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
     <div>
-        <h4 class="mb-0">Agenda de Manutenção</h4>
+        <h4 class="mb-0">Agenda &amp; Compromissos</h4>
         <p class="text-muted small mb-0">
-            Programe os compromissos por veículo/equipamento. Os avisos de
-            <strong>30, 15 e 7 dias</strong> são enviados automaticamente.
+            Manutenções, contas a pagar e a receber no mesmo calendário — veja o que precisa ser pago e quando.
+            Os avisos de <strong>30, 15 e 7 dias</strong> são gerados automaticamente.
         </p>
     </div>
-    <button type="button" class="btn btn-primary" data-novo-compromisso>
-        <i class="bi bi-calendar-plus me-1"></i>Novo compromisso
-    </button>
+    <div class="d-flex flex-wrap gap-2">
+        <a href="/admin/agenda/pdf?mes=<?= e($mes) ?>&ano=<?= e($ano) ?>" class="btn btn-outline-danger">
+            <i class="bi bi-file-earmark-pdf me-1"></i>PDF
+        </a>
+        <a href="/admin/agenda/xlsx?mes=<?= e($mes) ?>&ano=<?= e($ano) ?>" class="btn btn-outline-success">
+            <i class="bi bi-file-earmark-excel me-1"></i>Excel (XLSX)
+        </a>
+        <a href="/admin/financeiro?mes=<?= e(sprintf('%04d-%02d', $ano, $mes)) ?>" class="btn btn-outline-secondary">
+            <i class="bi bi-cash-coin me-1"></i>Fluxo de caixa
+        </a>
+        <button type="button" class="btn btn-primary" data-novo-compromisso>
+            <i class="bi bi-calendar-plus me-1"></i>Novo lançamento
+        </button>
+    </div>
 </div>
 
 <?php if (($avisosGerados ?? 0) > 0) { ?>
@@ -44,9 +55,50 @@ $anoSeguinte = $mes === 12 ? $ano + 1 : $ano;
 
 <div class="row g-3 mb-3">
     <div class="col-6 col-lg-3">
+        <div class="stat-card h-100" style="border-left:4px solid #16a34a">
+            <div>
+                <div class="stat-label">A receber no mês</div>
+                <div class="stat-value">R$ <?= e(number_format((float) ($resumoFinanceiro['a_receber'] ?? 0), 2, ',', '.')) ?></div>
+                <small class="text-muted"><?= e((string) ($resumoFinanceiro['a_receber_qtd'] ?? 0)) ?> lançamento(s)</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="stat-card h-100" style="border-left:4px solid #dc2626">
+            <div>
+                <div class="stat-label">A pagar no mês</div>
+                <div class="stat-value">R$ <?= e(number_format((float) ($resumoFinanceiro['a_pagar'] ?? 0), 2, ',', '.')) ?></div>
+                <small class="text-muted"><?= e((string) ($resumoFinanceiro['a_pagar_qtd'] ?? 0)) ?> lançamento(s)</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="stat-card h-100" style="border-left:4px solid #0891b2">
+            <div>
+                <div class="stat-label">Saldo previsto do mês</div>
+                <div class="stat-value <?= (float) ($resumoFinanceiro['previsto'] ?? 0) >= 0 ? 'text-success' : 'text-danger' ?>">
+                    R$ <?= e(number_format((float) ($resumoFinanceiro['previsto'] ?? 0), 2, ',', '.')) ?>
+                </div>
+                <small class="text-muted">Realizado: R$ <?= e(number_format((float) ($resumoFinanceiro['realizado'] ?? 0), 2, ',', '.')) ?></small>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="stat-card h-100" style="border-left:4px solid #d97706">
+            <div>
+                <div class="stat-label">Contas em atraso</div>
+                <div class="stat-value">R$ <?= e(number_format((float) ($resumoFinanceiro['atrasadas'] ?? 0), 2, ',', '.')) ?></div>
+                <small class="text-muted"><?= e((string) ($resumoFinanceiro['atrasadas_qtd'] ?? 0)) ?> conta(s) vencida(s)</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mb-3">
+    <div class="col-6 col-lg-3">
         <div class="stat-card h-100">
             <div class="stat-icon bg-primary bg-opacity-10 text-primary"><i class="bi bi-calendar-event"></i></div>
-            <div><div class="stat-value"><?= e((int) ($resumo['proximos30'] ?? 0)) ?></div><div class="stat-label">Próximos 30 dias</div></div>
+            <div><div class="stat-value"><?= e((int) ($resumo['proximos30'] ?? 0)) ?></div><div class="stat-label">Manutenções em 30 dias</div></div>
         </div>
     </div>
     <div class="col-6 col-lg-3">
@@ -87,6 +139,8 @@ $anoSeguinte = $mes === 12 ? $ano + 1 : $ano;
                         <span><i class="agenda-dot" style="background:#f59e0b"></i> Manutenção</span>
                         <span><i class="agenda-dot" style="background:#0891b2"></i> Revisão</span>
                         <span><i class="agenda-dot" style="background:#1e40af"></i> Inspeção</span>
+                        <span><i class="agenda-dot" style="background:#16a34a"></i> Entrada</span>
+                        <span><i class="agenda-dot" style="background:#dc2626"></i> Saída</span>
                     </div>
                 </div>
             </div>
@@ -123,12 +177,18 @@ $anoSeguinte = $mes === 12 ? $ano + 1 : $ano;
                             </span>
 
                             <?php foreach (array_slice($doDia, 0, 3) as $ev) { ?>
-                                <span class="agenda-chip tipo-<?= e($ev['type']) ?> <?= $ev['status'] === 'done' ? 'is-done' : '' ?>"
-                                      title="<?= e($ev['title']) ?>">
-                                    <?php if (!empty($ev['scheduled_time'])) { ?>
-                                        <span class="hora"><?= e(substr((string) $ev['scheduled_time'], 0, 5)) ?></span>
+                                <?php
+                                $classeTipo = $ev['origem'] === 'schedule' ? 'tipo-' . $ev['tipo'] : 'tipo-' . $ev['kind'];
+                                $feito = in_array($ev['situacao'], ['Concluído', 'Pago', 'Recebido'], true);
+                                ?>
+                                <span class="agenda-chip <?= e($classeTipo) ?> <?= $feito ? 'is-done' : '' ?>"
+                                      title="<?= e($ev['titulo'] . ($ev['ativo'] !== '' ? ' — ' . $ev['ativo'] : '') . ' (' . $ev['situacao'] . ')') ?>">
+                                    <?php if (!empty($ev['hora'])) { ?>
+                                        <span class="hora"><?= e($ev['hora']) ?></span>
+                                    <?php } else { ?>
+                                        <span class="hora"><i class="bi <?= e($ev['kind'] === 'income' ? 'bi-arrow-down' : ($ev['kind'] === 'expense' ? 'bi-arrow-up' : 'bi-tools')) ?>"></i></span>
                                     <?php } ?>
-                                    <?= e($ev['title']) ?>
+                                    <?= e($ev['titulo']) ?>
                                 </span>
                             <?php } ?>
 
@@ -189,6 +249,58 @@ $anoSeguinte = $mes === 12 ? $ano + 1 : $ano;
                 <?php } ?>
             </div>
         </div>
+
+        <div class="card mt-4">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <strong>Contas a vencer (30 dias)</strong>
+                <a href="/admin/financeiro" class="btn btn-sm btn-light">Abrir caixa</a>
+            </div>
+            <div class="card-body p-0">
+                <?php if (empty($contasProximas)) { ?>
+                    <p class="text-muted text-center py-4 mb-0">Nenhuma conta a vencer nos próximos 30 dias.</p>
+                <?php } else { ?>
+                    <ul class="list-unstyled mb-0">
+                        <?php foreach ($contasProximas as $c) { ?>
+                            <?php $entrada = $c['kind'] === 'income'; ?>
+                            <li class="d-flex justify-content-between align-items-start gap-2 px-3 py-2 border-bottom">
+                                <div style="min-width:0">
+                                    <div class="fw-semibold text-truncate"><?= e($c['description']) ?></div>
+                                    <small class="text-muted">
+                                        <?= e(date('d/m/Y', (int) strtotime((string) $c['due_date']))) ?>
+                                        · <?= e(\App\Support\Financeiro::categoriaLabel($c['kind'], $c['category'])) ?>
+                                    </small>
+                                </div>
+                                <span class="badge <?= $entrada ? 'bg-success' : 'bg-danger' ?> text-nowrap">
+                                    <?= e($entrada ? '+' : '-') ?> R$ <?= e(number_format((float) $c['amount'], 2, ',', '.')) ?>
+                                </span>
+                            </li>
+                        <?php } ?>
+                    </ul>
+                <?php } ?>
+            </div>
+        </div>
+
+        <?php if (!empty($contasVencidas)) { ?>
+            <div class="card mt-4 border-danger">
+                <div class="card-header bg-danger-subtle"><strong class="text-danger"><i class="bi bi-exclamation-octagon me-1"></i>Contas em atraso</strong></div>
+                <div class="card-body p-0">
+                    <ul class="list-unstyled mb-0">
+                        <?php foreach ($contasVencidas as $c) { ?>
+                            <?php $entrada = $c['kind'] === 'income'; ?>
+                            <li class="d-flex justify-content-between align-items-start gap-2 px-3 py-2 border-bottom">
+                                <div style="min-width:0">
+                                    <div class="fw-semibold text-truncate"><?= e($c['description']) ?></div>
+                                    <small class="text-muted">venceu em <?= e(date('d/m/Y', (int) strtotime((string) $c['due_date']))) ?></small>
+                                </div>
+                                <span class="badge bg-danger text-nowrap">
+                                    <?= e($entrada ? '+' : '-') ?> R$ <?= e(number_format((float) $c['amount'], 2, ',', '.')) ?>
+                                </span>
+                            </li>
+                        <?php } ?>
+                    </ul>
+                </div>
+            </div>
+        <?php } ?>
     </div>
 </div>
 
@@ -203,6 +315,26 @@ $anoSeguinte = $mes === 12 ? $ano + 1 : $ano;
             </div>
             <div class="modal-body">
                 <div class="row g-3">
+                    <div class="col-12">
+                        <label class="form-label d-block">O que você quer agendar? *</label>
+                        <div class="btn-group w-100" role="group">
+                            <input type="radio" class="btn-check" name="entry_kind" id="tipoCompromisso" value="schedule" checked>
+                            <label class="btn btn-outline-primary btn-sm" for="tipoCompromisso">
+                                <i class="bi bi-tools me-1"></i>Manutenção
+                            </label>
+
+                            <input type="radio" class="btn-check" name="entry_kind" id="tipoSaida" value="expense">
+                            <label class="btn btn-outline-danger btn-sm" for="tipoSaida">
+                                <i class="bi bi-arrow-up-circle me-1"></i>Conta a pagar
+                            </label>
+
+                            <input type="radio" class="btn-check" name="entry_kind" id="tipoEntrada" value="income">
+                            <label class="btn btn-outline-success btn-sm" for="tipoEntrada">
+                                <i class="bi bi-arrow-down-circle me-1"></i>Conta a receber
+                            </label>
+                        </div>
+                    </div>
+
                     <div class="col-12">
                         <label class="form-label" for="agenda_vehicle">Veículo / Equipamento</label>
                         <select name="vehicle_id" id="agenda_vehicle" class="form-select">
@@ -235,17 +367,42 @@ $anoSeguinte = $mes === 12 ? $ano + 1 : $ano;
                     </div>
 
                     <div class="col-6">
-                        <label class="form-label" for="agenda_date">Data *</label>
+                        <label class="form-label" for="agenda_date" data-rotulo-data>Data *</label>
                         <input type="date" name="scheduled_date" id="agenda_date" class="form-control" required
                                value="<?= e(date('Y-m-d')) ?>">
                     </div>
-                    <div class="col-6">
+                    <div class="col-6" data-grupo-hora>
                         <label class="form-label" for="agenda_time">Hora</label>
                         <input type="time" name="scheduled_time" id="agenda_time" class="form-control">
                     </div>
 
-                    <div class="col-12">
-                        <label class="form-label" for="agenda_type">Tipo</label>
+                    <!-- Campos financeiros -->
+                    <div class="col-6 d-none" data-grupo-financeiro>
+                        <label class="form-label" for="agenda_amount">Valor (R$) *</label>
+                        <input type="text" name="amount" id="agenda_amount" class="form-control" placeholder="0,00">
+                    </div>
+                    <div class="col-6 d-none" data-grupo-financeiro>
+                        <label class="form-label" for="agenda_party">Fornecedor / Cliente</label>
+                        <input type="text" name="party" id="agenda_party" class="form-control">
+                    </div>
+                    <div class="col-12 d-none" data-grupo-financeiro>
+                        <label class="form-label" for="agenda_category">Categoria</label>
+                        <select name="category" id="agenda_category" class="form-select">
+                            <optgroup label="Despesas" data-grupo-categoria="expense">
+                                <?php foreach ($categoriasDespesa as $chave => $cat) { ?>
+                                    <option value="<?= e($chave) ?>" data-cat-kind="expense"><?= e($cat['label']) ?></option>
+                                <?php } ?>
+                            </optgroup>
+                            <optgroup label="Receitas" data-grupo-categoria="income">
+                                <?php foreach ($categoriasReceita as $chave => $cat) { ?>
+                                    <option value="<?= e($chave) ?>" data-cat-kind="income"><?= e($cat['label']) ?></option>
+                                <?php } ?>
+                            </optgroup>
+                        </select>
+                    </div>
+
+                    <div class="col-12" data-grupo-compromisso>
+                        <label class="form-label" for="agenda_type">Tipo de manutenção</label>
                         <select name="type" id="agenda_type" class="form-select">
                             <?php foreach ($tipos as $t) { ?>
                                 <option value="<?= e($t) ?>" <?= $t === 'maintenance' ? 'selected' : '' ?>>
@@ -262,9 +419,14 @@ $anoSeguinte = $mes === 12 ? $ano + 1 : $ano;
                     </div>
                 </div>
 
-                <div class="alert alert-info mt-3 mb-0 small">
+                <div class="alert alert-info mt-3 mb-0 small" data-grupo-compromisso>
                     <i class="bi bi-bell me-1"></i>
                     Você receberá avisos automáticos <strong>30, 15 e 7 dias</strong> antes desta data.
+                </div>
+
+                <div class="alert alert-warning mt-3 mb-0 small d-none" data-grupo-financeiro>
+                    <i class="bi bi-cash-coin me-1"></i>
+                    O lançamento entra no <strong>fluxo de caixa</strong> com vencimento nesta data e aparece nas notificações.
                 </div>
             </div>
             <div class="modal-footer">
@@ -300,6 +462,64 @@ $anoSeguinte = $mes === 12 ? $ano + 1 : $ano;
             document.body.style.overflow = '';
         }
     });
+
+    // Alterna entre compromisso de manutenção e lançamento financeiro
+    var tituloModal = modal.querySelector('.modal-title');
+    var categorias = document.getElementById('agenda_category');
+    var valorInput = document.getElementById('agenda_amount');
+    var rotuloData = document.querySelector('[data-rotulo-data]');
+
+    function atualizarTipo() {
+        var kind = document.querySelector('input[name="entry_kind"]:checked').value;
+        var financeiro = kind !== 'schedule';
+
+        document.querySelectorAll('[data-grupo-financeiro]').forEach(function (el) {
+            el.classList.toggle('d-none', !financeiro);
+        });
+        document.querySelectorAll('[data-grupo-compromisso]').forEach(function (el) {
+            el.classList.toggle('d-none', financeiro);
+        });
+        document.querySelectorAll('[data-grupo-hora]').forEach(function (el) {
+            el.classList.toggle('d-none', financeiro);
+        });
+
+        if (valorInput) { valorInput.required = financeiro; }
+        if (rotuloData) { rotuloData.textContent = financeiro ? 'Vencimento *' : 'Data *'; }
+
+        if (categorias) {
+            var grupos = categorias.querySelectorAll('[data-grupo-categoria]');
+            grupos.forEach(function (grupo) {
+                var combina = financeiro && grupo.dataset.grupoCategoria === kind;
+                grupo.disabled = !combina;
+                grupo.hidden = !combina;
+            });
+
+            // Seleciona a primeira opção válida do grupo ativo
+            if (financeiro) {
+                var primeira = categorias.querySelector('option[data-cat-kind="' + kind + '"]');
+                if (primeira) { categorias.value = primeira.value; }
+            }
+        }
+
+        if (tituloModal) {
+            tituloModal.innerHTML = '<i class="bi ' + (kind === 'income' ? 'bi-arrow-down-circle'
+                : (kind === 'expense' ? 'bi-arrow-up-circle' : 'bi-calendar-plus')) + ' me-2"></i>'
+                + (kind === 'income' ? 'Nova conta a receber' : (kind === 'expense' ? 'Nova conta a pagar' : 'Novo compromisso'));
+        }
+    }
+
+    document.querySelectorAll('input[name="entry_kind"]').forEach(function (radio) {
+        radio.addEventListener('change', atualizarTipo);
+    });
+    atualizarTipo();
+
+    // Abre o formulário já no dia indicado por ?dia= (usado pelas notificações)
+    var diaParam = new URLSearchParams(location.search).get('dia');
+    if (diaParam && document.querySelector('.agenda-day[data-dia$="-' + String(diaParam).padStart(2, '0') + '"]')) {
+        var celula = document.querySelector('.agenda-day[data-dia$="-' + String(diaParam).padStart(2, '0') + '"]');
+        celula.classList.add('is-focus');
+        abrir(celula.getAttribute('data-dia'));
+    }
 })();
 </script>
 <?php $view->endSection(); ?>

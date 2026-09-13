@@ -9,7 +9,13 @@ $isEquipment = static fn(array $v): bool => ($v['category'] ?? 'vehicle') === 'e
         <h4 class="mb-0">Frota &amp; Equipamentos</h4>
         <p class="text-muted small mb-0">Veículos e equipamentos (geradores, compressores) com seus lançamentos.</p>
     </div>
-    <div class="d-flex gap-2">
+    <div class="d-flex flex-wrap gap-2">
+        <a href="/admin/frota/pdf<?= $tipo !== 'all' ? '?tipo=' . e($tipo) : '' ?>" class="btn btn-outline-danger">
+            <i class="bi bi-file-earmark-pdf me-1"></i>PDF
+        </a>
+        <a href="/admin/frota/xlsx<?= $tipo !== 'all' ? '?tipo=' . e($tipo) : '' ?>" class="btn btn-outline-success">
+            <i class="bi bi-file-earmark-excel me-1"></i>Excel
+        </a>
         <a href="/admin/frota/relatorios" class="btn btn-outline-primary">
             <i class="bi bi-graph-up me-1"></i>Relatórios de consumo
         </a>

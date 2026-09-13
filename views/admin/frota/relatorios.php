@@ -64,9 +64,20 @@ $tiposLabel = ['preventive' => 'Preventiva', 'corrective' => 'Corretiva'];
                 </select>
             </div>
             <div class="col-12 col-md-3">
-                <button type="submit" class="btn btn-primary w-100">
-                    <i class="bi bi-funnel me-1"></i>Aplicar filtros
-                </button>
+                <label class="form-label d-none d-md-block">&nbsp;</label>
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary flex-grow-1">
+                        <i class="bi bi-funnel me-1"></i>Aplicar
+                    </button>
+                    <a href="/admin/frota/relatorios/pdf?de=<?= e($de) ?>&ate=<?= e($ate) ?>&categoria=<?= e($categoria) ?>"
+                       class="btn btn-outline-danger" title="Exportar em PDF">
+                        <i class="bi bi-file-earmark-pdf"></i>
+                    </a>
+                    <a href="/admin/frota/relatorios/xlsx?de=<?= e($de) ?>&ate=<?= e($ate) ?>&categoria=<?= e($categoria) ?>"
+                       class="btn btn-outline-success" title="Exportar em Excel (XLSX)">
+                        <i class="bi bi-file-earmark-excel"></i>
+                    </a>
+                </div>
             </div>
         </div>
     </div>

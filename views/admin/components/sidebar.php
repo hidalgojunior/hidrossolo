@@ -74,7 +74,7 @@
         <li>
             <a class="nav-link <?= e(str_contains($_SERVER['REQUEST_URI'], '/admin/agenda') ? 'active' : '') ?>" 
                href="/admin/agenda">
-                <i class="bi bi-calendar3"></i> Agenda de manutenção
+                <i class="bi bi-calendar3"></i> Agenda &amp; compromissos
             </a>
         </li>
         <li>
@@ -108,7 +108,30 @@
             </a>
         </li>
 
+        <li class="section-title">Financeiro</li>
+        <li>
+            <a class="nav-link <?= e(str_contains($_SERVER['REQUEST_URI'], '/admin/financeiro') ? 'active' : '') ?>"
+               href="/admin/financeiro">
+                <i class="bi bi-cash-coin"></i> Fluxo de caixa
+            </a>
+        </li>
+        <li>
+            <a class="nav-link <?= e(str_contains($_SERVER['REQUEST_URI'], '/admin/financeiro/novo') ? 'active' : '') ?>"
+               href="/admin/financeiro/novo">
+                <i class="bi bi-plus-square"></i> Novo lançamento
+            </a>
+        </li>
+
         <li class="section-title">Sistema</li>
+        <li>
+            <a class="nav-link <?= e(str_contains($_SERVER['REQUEST_URI'], '/admin/notificacoes') ? 'active' : '') ?>"
+               href="/admin/notificacoes">
+                <i class="bi bi-bell"></i> Notificações
+                <?php if (($unread_notifications ?? 0) > 0) { ?>
+                    <span class="badge rounded-pill bg-danger ms-1"><?= e($unread_notifications) ?></span>
+                <?php } ?>
+            </a>
+        </li>
         <li>
             <a class="nav-link <?= e(str_contains($_SERVER['REQUEST_URI'], '/admin/seo') ? 'active' : '') ?>" 
                href="/admin/seo">

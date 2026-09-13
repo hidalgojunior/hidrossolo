@@ -6,6 +6,8 @@ namespace App\Controllers\Admin;
 
 use App\Core\BaseController;
 use App\Core\Security;
+use App\Support\Exportador;
+use App\Support\FleetAgenda;
 
 /**
  * Frota e Equipamentos (geradores, compressores...).
@@ -46,6 +48,66 @@ class VeiculosController extends BaseController
             'totais' => $totais,
             'config' => $this->config('company'),
         ]);
+    }
+
+    /**
+     * Exporta a frota em PDF.
+     */
+    public function pdf(): void
+    {
+        Exportador::pdf(Exportador::nomeArquivo('frota'), $this->relatorio());
+    }
+
+    /**
+     * Exporta a frota em planilha XLSX formatada.
+     */
+    public function xlsx(): void
+    {
+        Exportador::xlsx(Exportador::nomeArquivo('frota'), $this->relatorio());
+    }
+
+    /**
+     * @return array<string,mixed>
+     */
+    private function relatorio(): array
+    {
+        $linhas = [];
+
+        foreach ($this->frotaCompleta() as $v) {
+            $comb = FleetAgenda::combustivelInfo($v['fuel_type'] ?? null, $v['category'] ?? 'vehicle');
+
+            $linhas[] = [
+                'tipo' => ($v['category'] ?? 'vehicle') === 'equipment' ? 'Equipamento' : 'Veículo',
+                'ativo' => asset_label($v),
+                'ano' => (string) ($v['year'] ?? ''),
+                'placa' => (string) ($v['plate'] ?? ''),
+                'combustivel' => $comb['label'],
+                'km' => ($v['category'] ?? 'vehicle') === 'equipment'
+                    ? number_format((float) ($v['current_hours'] ?? 0), 1, ',', '.') . ' h'
+                    : number_format((float) ($v['current_km'] ?? 0), 0, ',', '.') . ' km',
+                'status' => ($v['status'] ?? '') === 'inactive' ? 'Inativo' : 'Ativo',
+            ];
+        }
+
+        return [
+            'title' => 'Frota & equipamentos',
+            'subtitle' => 'Inventário de veículos, geradores e demais equipamentos',
+            'company' => $this->config('company'),
+            'columns' => [
+                ['label' => 'Tipo', 'key' => 'tipo', 'width' => 14, 'type' => 'center'],
+                ['label' => 'Identificação', 'key' => 'ativo', 'width' => 40],
+                ['label' => 'Ano', 'key' => 'ano', 'width' => 8, 'type' => 'center'],
+                ['label' => 'Placa / Série', 'key' => 'placa', 'width' => 16, 'type' => 'center'],
+                ['label' => 'Combustível', 'key' => 'combustivel', 'width' => 14, 'type' => 'center'],
+                ['label' => 'KM / Horímetro', 'key' => 'km', 'width' => 18, 'type' => 'center'],
+                ['label' => 'Situação', 'key' => 'status', 'width' => 12, 'type' => 'center'],
+            ],
+            'rows' => $linhas,
+            'summary' => [
+                ['label' => 'Ativos cadastrados', 'value' => (string) count($linhas), 'tone' => 'neutral'],
+            ],
+            'notes' => 'Documento gerado a partir do módulo Frota & Equipamentos.',
+        ];
     }
 
     public function create(): void
@@ -184,6 +246,19 @@ class VeiculosController extends BaseController
     }
 
     /* ===================================================================== */
+
+    /**
+     * Lista completa da frota (veículos e equipamentos), já ordenada.
+     *
+     * @return array<int,array<string,mixed>>
+     */
+    private function frotaCompleta(): array
+    {
+        return $this->db()->fetchAll(
+            "SELECT * FROM vehicles
+             ORDER BY category, COALESCE(NULLIF(plate, ''), equipment_type), brand"
+        );
+    }
 
     private function parentVehicles(?int $excludeId = null): array
     {

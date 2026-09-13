@@ -96,17 +96,43 @@ $router->group(['prefix' => 'admin', 'middleware' => [AuthMiddleware::class, Csr
     // Auditoria
     $router->get('/auditoria', [\App\Controllers\Admin\AuditoriaController::class, 'index']);
 
+    // Notificações (avisos de manutenção, contas a vencer e segurança)
+    $router->get('/notificacoes', [\App\Controllers\Admin\NotificacoesController::class, 'index']);
+    $router->get('/notificacoes/abrir/{id}', [\App\Controllers\Admin\NotificacoesController::class, 'abrir']);
+    $router->post('/notificacoes/ler/{id}', [\App\Controllers\Admin\NotificacoesController::class, 'ler']);
+    $router->post('/notificacoes/ler-todas', [\App\Controllers\Admin\NotificacoesController::class, 'lerTodas']);
+    $router->post('/notificacoes/gerar-avisos', [\App\Controllers\Admin\NotificacoesController::class, 'gerarAvisos']);
+    $router->post('/notificacoes/limpar', [\App\Controllers\Admin\NotificacoesController::class, 'limpar']);
+    $router->post('/notificacoes/excluir/{id}', [\App\Controllers\Admin\NotificacoesController::class, 'excluir']);
+
     // Veículos
     $router->get('/frota', [VeiculosController::class, 'index']);
+    $router->get('/frota/pdf', [VeiculosController::class, 'pdf']);
+    $router->get('/frota/xlsx', [VeiculosController::class, 'xlsx']);
     $router->get('/frota/novo', [VeiculosController::class, 'create']);
     $router->post('/frota/novo', [VeiculosController::class, 'store']);
     $router->get('/frota/relatorios', [\App\Controllers\Admin\RelatoriosFrotaController::class, 'index']);
+    $router->get('/frota/relatorios/pdf', [\App\Controllers\Admin\RelatoriosFrotaController::class, 'pdf']);
+    $router->get('/frota/relatorios/xlsx', [\App\Controllers\Admin\RelatoriosFrotaController::class, 'xlsx']);
 
-    // Agenda de manutenção
+    // Agenda de manutenção e compromissos
     $router->get('/agenda', [\App\Controllers\Admin\AgendaController::class, 'index']);
+    $router->get('/agenda/pdf', [\App\Controllers\Admin\AgendaController::class, 'pdf']);
+    $router->get('/agenda/xlsx', [\App\Controllers\Admin\AgendaController::class, 'xlsx']);
     $router->post('/agenda/novo', [\App\Controllers\Admin\AgendaController::class, 'store']);
     $router->post('/agenda/status/{id}', [\App\Controllers\Admin\AgendaController::class, 'status']);
     $router->post('/agenda/excluir/{id}', [\App\Controllers\Admin\AgendaController::class, 'delete']);
+
+    // Fluxo de caixa (contas a pagar e a receber)
+    $router->get('/financeiro', [\App\Controllers\Admin\FinanceiroController::class, 'index']);
+    $router->get('/financeiro/pdf', [\App\Controllers\Admin\FinanceiroController::class, 'pdf']);
+    $router->get('/financeiro/xlsx', [\App\Controllers\Admin\FinanceiroController::class, 'xlsx']);
+    $router->get('/financeiro/novo', [\App\Controllers\Admin\FinanceiroController::class, 'create']);
+    $router->post('/financeiro/novo', [\App\Controllers\Admin\FinanceiroController::class, 'store']);
+    $router->get('/financeiro/editar/{id}', [\App\Controllers\Admin\FinanceiroController::class, 'edit']);
+    $router->post('/financeiro/editar/{id}', [\App\Controllers\Admin\FinanceiroController::class, 'update']);
+    $router->post('/financeiro/status/{id}', [\App\Controllers\Admin\FinanceiroController::class, 'status']);
+    $router->post('/financeiro/excluir/{id}', [\App\Controllers\Admin\FinanceiroController::class, 'delete']);
     $router->get('/frota/editar/{id}', [VeiculosController::class, 'edit']);
     $router->post('/frota/editar/{id}', [VeiculosController::class, 'update']);
 
@@ -172,6 +198,8 @@ $router->group(['prefix' => 'admin', 'middleware' => [AuthMiddleware::class, Csr
 
     // Manutenções
     $router->get('/manutencoes', [ManutencoesController::class, 'index']);
+    $router->get('/manutencoes/pdf', [ManutencoesController::class, 'pdf']);
+    $router->get('/manutencoes/xlsx', [ManutencoesController::class, 'xlsx']);
     $router->get('/manutencoes/novo', [ManutencoesController::class, 'create']);
     $router->post('/manutencoes/novo', [ManutencoesController::class, 'store']);
     $router->get('/manutencoes/editar/{id}', [ManutencoesController::class, 'edit']);
@@ -180,6 +208,8 @@ $router->group(['prefix' => 'admin', 'middleware' => [AuthMiddleware::class, Csr
 
     // Abastecimentos
     $router->get('/abastecimentos', [AbastecimentosController::class, 'index']);
+    $router->get('/abastecimentos/pdf', [AbastecimentosController::class, 'pdf']);
+    $router->get('/abastecimentos/xlsx', [AbastecimentosController::class, 'xlsx']);
     $router->get('/abastecimentos/novo', [AbastecimentosController::class, 'create']);
     $router->post('/abastecimentos/novo', [AbastecimentosController::class, 'store']);
 

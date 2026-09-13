@@ -173,23 +173,6 @@ body.driver { background: #eef2f9; }
 /* -------------------------------------------------------------------------
    Repetidores (despesas extras e itens de manutenção)
    ------------------------------------------------------------------------- */
-.driver-repeater {
-    padding: .9rem;
-    background: var(--bg-alt);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-}
-
-.driver-repeater-row {
-    display: grid;
-    grid-template-columns: 1fr 88px 40px;
-    gap: .4rem;
-    margin-bottom: .4rem;
-    align-items: center;
-}
-
-.driver-repeater-row.has-three { grid-template-columns: 1fr 64px 88px 40px; }
-
 /* Atalhos de categoria */
 .driver-chip-row { display: flex; flex-wrap: wrap; gap: .4rem; }
 
@@ -210,19 +193,7 @@ body.driver { background: #eef2f9; }
 
 .driver-chip:hover { background: var(--primary-soft); border-color: var(--primary-light); color: var(--primary); }
 
-/* Listas de extras / itens */
-.driver-extras {
-    list-style: none;
-    margin: .4rem 0 0;
-    padding: 0;
-    font-size: .78rem;
-    color: var(--text-muted);
-}
-
-.driver-extras li { display: flex; align-items: center; gap: .35rem; margin-bottom: .15rem; }
-.driver-extras li i { color: var(--primary-light); font-size: .8rem; }
-.driver-extras li span { margin-left: auto; color: var(--text); font-weight: 600; }
-
+/* Próxima revisão */
 .driver-next {
     margin-top: .45rem;
     padding: .3rem .55rem;

@@ -106,9 +106,17 @@ class App
             View::share('logo', '/assets/images/hidrossolo.png');
         }
 
-        // Contador de notificações para o topbar
+        // Contador de notificações para o topbar (avisos globais + do usuário)
         try {
-            $notif = $this->db->fetch("SELECT COUNT(*) as c FROM notifications WHERE read_at IS NULL");
+            $userId = (int) ($_SESSION['user_id'] ?? 0);
+
+            $notif = $userId > 0
+                ? $this->db->fetch(
+                    "SELECT COUNT(*) AS c FROM notifications WHERE read_at IS NULL AND (user_id IS NULL OR user_id = ?)",
+                    [$userId]
+                )
+                : $this->db->fetch("SELECT COUNT(*) AS c FROM notifications WHERE read_at IS NULL AND user_id IS NULL");
+
             View::share('unread_notifications', (int)($notif['c'] ?? 0));
         } catch (\Throwable) {
             View::share('unread_notifications', 0);

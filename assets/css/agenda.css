@@ -74,7 +74,28 @@
 .agenda-chip.tipo-revision { border-left-color: var(--info); }
 .agenda-chip.tipo-inspection { border-left-color: var(--primary); }
 .agenda-chip.tipo-other { border-left-color: #94a3b8; }
+
+/* Entradas e saídas do fluxo de caixa */
+.agenda-chip.tipo-income {
+    border-left-color: #16a34a;
+    background: #f0fdf4;
+    color: #166534;
+}
+
+.agenda-chip.tipo-expense {
+    border-left-color: #dc2626;
+    background: #fef2f2;
+    color: #991b1b;
+}
+
 .agenda-chip.is-done { opacity: .55; text-decoration: line-through; }
+
+/* Dia destacado por link direto (?dia=) */
+.agenda-day.is-focus {
+    border-color: var(--primary);
+    background: var(--primary-soft);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, .25);
+}
 
 .agenda-more { font-size: .65rem; color: var(--text-muted); }
 
@@ -101,6 +122,8 @@
 }
 .agenda-list-item.tipo-maintenance { border-left-color: var(--warning); }
 .agenda-list-item.tipo-revision { border-left-color: var(--info); }
+.agenda-list-item.tipo-income { border-left-color: #16a34a; }
+.agenda-list-item.tipo-expense { border-left-color: #dc2626; }
 .agenda-list-item .data {
     flex: 0 0 54px;
     text-align: center;

@@ -55,6 +55,11 @@ final class FleetAgenda
                 $quando = date('d/m/Y', strtotime((string) $a['scheduled_date']));
                 $hora = !empty($a['scheduled_time']) ? ' às ' . substr((string) $a['scheduled_time'], 0, 5) : '';
 
+                // Link direto para o dia no calendário da agenda
+                $link = '/admin/agenda?mes=' . date('n', strtotime((string) $a['scheduled_date']))
+                    . '&ano=' . date('Y', strtotime((string) $a['scheduled_date']))
+                    . '&dia=' . date('j', strtotime((string) $a['scheduled_date']));
+
                 $db->insert('notifications', [
                     'user_id' => null,
                     'title' => $dias <= 7
@@ -62,7 +67,7 @@ final class FleetAgenda
                         : "Manutenção em {$dias} dias",
                     'message' => trim(($a['title'] ?? 'Compromisso') . " para {$ativo} em {$quando}{$hora}."),
                     'type' => $dias <= 7 ? 'warning' : 'info',
-                    'link' => '/admin/agenda',
+                    'link' => $link,
                 ]);
 
                 $db->update('fleet_schedules', [$coluna => date('Y-m-d H:i:s')], 'id = ?', [(int) $a['id']]);
