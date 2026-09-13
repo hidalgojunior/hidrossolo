@@ -102,8 +102,7 @@ class Router
 
         // Rota não encontrada
         http_response_code(404);
-        $blade = App::getInstance()->getBlade();
-        echo $blade->render('errors.404');
+        echo View::render('errors.404');
     }
 
     private function convertToRegex(string $uri): string

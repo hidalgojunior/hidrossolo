@@ -5,19 +5,17 @@ declare(strict_types=1);
 namespace App\Core;
 
 use Dotenv\Dotenv;
-use Jenssegers\Blade\Blade;
 use App\Core\Router;
 use App\Core\Database;
 use App\Core\ExceptionHandler;
 use App\Core\Logger;
+use App\Core\View;
 use App\Middleware\CsrfMiddleware;
-use Illuminate\Support\Str;
 
 class App
 {
     private static ?App $instance = null;
     private Router $router;
-    private Blade $blade;
     private Database $db;
     private array $config = [];
 
@@ -39,15 +37,9 @@ class App
         // Inicializar componentes
         $this->router = new Router();
         $this->db = new Database();
-        $this->blade = new Blade(
-            dirname(__DIR__, 2) . '/views',
-            dirname(__DIR__, 2) . '/cache'
-        );
 
-        // Registrar aliases para uso nas views Blade
-        if (!class_exists('Str')) {
-            class_alias(Str::class, 'Str');
-        }
+        // Motor de views em PHP puro (sem Blade/Laravel)
+        View::setBasePath(dirname(__DIR__, 2) . '/views');
 
         // Carregar configurações
         $this->loadConfig();
@@ -76,11 +68,6 @@ class App
         return $this->router;
     }
 
-    public function getBlade(): Blade
-    {
-        return $this->blade;
-    }
-
     public function getDb(): Database
     {
         return $this->db;
@@ -105,32 +92,27 @@ class App
 
     private function shareViewData(): void
     {
-        $this->blade->share('app_name', $_ENV['APP_NAME'] ?? 'Hidrossolo');
-        $this->blade->share('app_url', $_ENV['APP_URL'] ?? 'http://localhost:8080');
-        $this->blade->share('app_env', $_ENV['APP_ENV'] ?? 'production');
-        $this->blade->share('csrf_token', CsrfMiddleware::token());
-        $this->blade->share('csrf_field', CsrfMiddleware::field());
+        View::share('app_name', $_ENV['APP_NAME'] ?? 'Hidrossolo');
+        View::share('app_url', $_ENV['APP_URL'] ?? 'http://localhost:8080');
+        View::share('app_env', $_ENV['APP_ENV'] ?? 'production');
+        View::share('csrf_token', CsrfMiddleware::token());
+        View::share('csrf_field', CsrfMiddleware::field());
 
         // Logo configurável (busca do site_settings ou usa default)
         try {
             $logo = $this->db->fetch("SELECT `value` FROM site_settings WHERE `key` = 'site_logo'");
-            $this->blade->share('logo', $logo['value'] ?? '/assets/images/hidrossolo.png');
+            View::share('logo', $logo['value'] ?? '/assets/images/hidrossolo.png');
         } catch (\Throwable) {
-            $this->blade->share('logo', '/assets/images/hidrossolo.png');
+            View::share('logo', '/assets/images/hidrossolo.png');
         }
 
         // Contador de notificações para o topbar
         try {
             $notif = $this->db->fetch("SELECT COUNT(*) as c FROM notifications WHERE read_at IS NULL");
-            $this->blade->share('unread_notifications', (int)($notif['c'] ?? 0));
+            View::share('unread_notifications', (int)($notif['c'] ?? 0));
         } catch (\Throwable) {
-            $this->blade->share('unread_notifications', 0);
+            View::share('unread_notifications', 0);
         }
-
-        // Registrar diretiva Blade @csrf
-        $this->blade->directive('csrf', function () {
-            return '<?php echo \App\Middleware\CsrfMiddleware::field(); ?>';
-        });
     }
 
     // Evitar clonagem

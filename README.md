@@ -44,17 +44,18 @@ CEP: 17519-700
 
 ## Backend
 
-- Laravel 12
-- PHP 8.3+
+- PHP 8.3+ (PHP puro — sem frameworks)
+- Micro-framework MVC próprio (`app/Core`)
+- Motor de views próprio em PHP puro (`App\Core\View`)
 - API Ready
-- Arquitetura MVC
 
 ## Frontend
 
-- Blade
-- Bootstrap 5
-- Mobile First
-- Progressive Enhancement
+- Templates PHP puro (sem Blade)
+- CSS próprio (`assets/css/app.css`) — sem Bootstrap/Tailwind
+- JavaScript vanilla (`assets/js/ui.js`) — sem framework de UI
+- Fonte **Tahoma** (com fallback de sistema)
+- Mobile First / Progressive Enhancement
 
 ## Banco de Dados
 
@@ -169,7 +170,7 @@ Campos:
 ---
 
 # CMS Próprio
-Sistema inspirado na experiência de uso do WordPress, porém desenvolvido integralmente em Laravel.
+Sistema inspirado na experiência de uso do WordPress, porém desenvolvido integralmente em PHP puro (MVC próprio, sem frameworks).
 
 ## Gestão de Conteúdo
 
@@ -363,7 +364,7 @@ Consulta limitada
 
 ## Autenticação
 
-- Laravel Auth
+- Autenticação própria com sessões PHP
 - Bcrypt
 - Recuperação de senha
 

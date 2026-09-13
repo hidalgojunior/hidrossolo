@@ -8,7 +8,7 @@ abstract class BaseController
 {
     protected function view(string $template, array $data = []): string
     {
-        return App::getInstance()->getBlade()->render($template, $data);
+        return View::render($template, $data);
     }
 
     protected function json(mixed $data, int $status = 200): void

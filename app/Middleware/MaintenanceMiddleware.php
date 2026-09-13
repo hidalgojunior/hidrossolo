@@ -6,6 +6,7 @@ namespace App\Middleware;
 
 use App\Core\App;
 use App\Core\BaseMiddleware;
+use App\Core\View;
 
 class MaintenanceMiddleware extends BaseMiddleware
 {
@@ -37,7 +38,7 @@ class MaintenanceMiddleware extends BaseMiddleware
 
         // Exibir página de manutenção
         http_response_code(503);
-        echo App::getInstance()->getBlade()->render('pages.maintenance', [
+        echo View::render('pages.maintenance', [
             'message' => $db->fetch("SELECT `value` FROM site_settings WHERE `key` = 'maintenance_message'")['value'] ?? 'Estamos em manutenção. Voltaremos em breve!',
         ]);
         exit;

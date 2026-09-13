@@ -133,10 +133,10 @@ $router->group(['prefix' => 'admin', 'middleware' => [AuthMiddleware::class, Csr
         $user = $db->fetch("SELECT u.id, r.name as role FROM users u JOIN roles r ON u.role_id = r.id WHERE u.id = ?", [$_SESSION['user_id'] ?? 0]);
         if (!$user || $user['role'] !== 'superadmin') {
             http_response_code(403);
-            echo \App\Core\App::getInstance()->getBlade()->render('errors.403');
+            echo \App\Core\View::render('errors.403');
             exit;
         }
-        echo \App\Core\App::getInstance()->getBlade()->render('admin.api-docs', [
+        echo \App\Core\View::render('admin.api-docs', [
             'title' => 'API Documentation',
             'app_url' => $_ENV['APP_URL'] ?? 'http://localhost:8083',
         ]);
