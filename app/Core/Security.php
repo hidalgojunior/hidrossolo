@@ -16,6 +16,11 @@ namespace App\Core;
  */
 final class Security
 {
+    /**
+     * Tamanho mínimo exigido para senhas (cadastro de usuários, troca de senha
+     * e redefinição). A senha também precisa ter ao menos uma letra e um número.
+     */
+    public const PASSWORD_MIN_LENGTH = 6;
     /** Tempo máximo de inatividade da sessão (segundos) — 2 horas. */
     private const IDLE_TIMEOUT = 7200;
 
@@ -261,8 +266,8 @@ final class Security
     {
         $issues = [];
 
-        if (mb_strlen($password) < 10) {
-            $issues[] = 'A senha deve ter ao menos 10 caracteres.';
+        if (mb_strlen($password) < self::PASSWORD_MIN_LENGTH) {
+            $issues[] = 'A senha deve ter ao menos ' . self::PASSWORD_MIN_LENGTH . ' caracteres.';
         }
         if (!preg_match('/[A-Za-zÀ-ÿ]/', $password)) {
             $issues[] = 'Inclua ao menos uma letra.';

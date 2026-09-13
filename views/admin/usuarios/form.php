@@ -25,6 +25,7 @@
                             <i class="bi bi-eye"></i>
                         </button>
                     </div>
+                    <div class="form-text">Mínimo de 6 caracteres, com ao menos uma letra e um número.</div>
                 </div>
                 <div class="col-md-4">
                     <label class="form-label">Perfil *</label>

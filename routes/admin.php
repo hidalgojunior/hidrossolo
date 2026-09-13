@@ -164,6 +164,8 @@ $router->group(['prefix' => 'admin', 'middleware' => [AuthMiddleware::class, Csr
     $router->get('/usuarios', [UsuariosController::class, 'index']);
     $router->get('/usuarios/novo', [UsuariosController::class, 'create']);
     $router->post('/usuarios/novo', [UsuariosController::class, 'store']);
+    $router->get('/usuarios/editar/{id}', [UsuariosController::class, 'edit']);
+    $router->post('/usuarios/editar/{id}', [UsuariosController::class, 'update']);
 
     // Mídia
     $router->get('/midia', [MidiaController::class, 'index']);

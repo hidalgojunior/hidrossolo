@@ -122,7 +122,7 @@ print(r.json())</code></pre>
   Token:  hidrossolo_api_2026_token_admin
 
 Ou importe a Collection do botão Download acima —
-o token já está pré-configurado como variável @<?= e(token) ?>.</code></pre>
+o token já está pré-configurado como variável &#64;token.</code></pre>
                     </div>
                 </div>
 
@@ -350,8 +350,9 @@ $schemas = [
                         </h2>
                         <div id="sch-<?= e($table) ?>" class="accordion-collapse collapse" data-bs-parent="#tableSchemas">
                             <div class="accordion-body p-2" style="font-size:0.75rem">
-                                <?php foreach ($columns as $col) { ?>
-                                <div class="py-1 border-bottom <?= e($loop->last ? 'border-bottom-0' : '') ?>">
+                                <?php $ultimaColuna = count($columns) - 1; ?>
+                                <?php foreach ($columns as $indiceColuna => $col) { ?>
+                                <div class="py-1 border-bottom <?= e($indiceColuna === $ultimaColuna ? 'border-bottom-0' : '') ?>">
                                     <code class="text-primary"><?= e(explode(' ', $col)[0]) ?></code>
                                     <span class="text-muted ms-1"><?= e(preg_replace('/^[^\s]+\s/', '', $col)) ?></span>
                                 </div>
