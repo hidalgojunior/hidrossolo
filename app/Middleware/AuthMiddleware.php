@@ -28,21 +28,30 @@ class AuthMiddleware extends BaseMiddleware
             exit;
         }
 
-        // Verificar se usuário ainda está ativo
+        // Verificar se usuário ainda está ativo (e qual o papel)
         $db = \App\Core\App::getInstance()->getDb();
         $user = $db->fetch(
-            "SELECT active FROM users WHERE id = ?",
+            "SELECT u.active, r.name AS role_name
+             FROM users u
+             LEFT JOIN roles r ON r.id = u.role_id
+             WHERE u.id = ?",
             [$_SESSION['user_id']]
         );
 
         if (!$user || !$user['active']) {
-            session_destroy();
+            \App\Core\Security::destroySession();
             if ($this->isApiRoute()) {
                 http_response_code(401);
                 echo json_encode(['error' => 'Usuário inativo']);
                 exit;
             }
             header('Location: /admin/login');
+            exit;
+        }
+
+        // Motorista só tem acesso à área dele
+        if (($user['role_name'] ?? '') === 'motorista' && !$this->isApiRoute()) {
+            header('Location: /motorista');
             exit;
         }
 

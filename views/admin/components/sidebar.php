@@ -60,9 +60,15 @@
 
         <li class="section-title">Operacional</li>
         <li>
-            <a class="nav-link <?= e(str_contains($_SERVER['REQUEST_URI'], '/admin/frota') && !str_contains($_SERVER['REQUEST_URI'], '/admin/frota/editar') ? 'active' : '') ?>" 
+            <a class="nav-link <?= e(str_contains($_SERVER['REQUEST_URI'], '/admin/frota') && !str_contains($_SERVER['REQUEST_URI'], '/admin/frota/editar') && !str_contains($_SERVER['REQUEST_URI'], '/admin/frota/relatorios') ? 'active' : '') ?>" 
                href="/admin/frota">
-                <i class="bi bi-truck"></i> Frota
+                <i class="bi bi-truck"></i> Frota &amp; Equipamentos
+            </a>
+        </li>
+        <li>
+            <a class="nav-link <?= e(str_contains($_SERVER['REQUEST_URI'], '/admin/frota/relatorios') ? 'active' : '') ?>" 
+               href="/admin/frota/relatorios">
+                <i class="bi bi-graph-up"></i> Relatórios de consumo
             </a>
         </li>
         <li>
@@ -78,9 +84,15 @@
             </a>
         </li>
         <li>
-            <a class="nav-link <?= e(str_contains($_SERVER['REQUEST_URI'], '/admin/contratos') ? 'active' : '') ?>" 
+            <a class="nav-link <?= e(str_contains($_SERVER['REQUEST_URI'], '/admin/contratos') && !str_contains($_SERVER['REQUEST_URI'], '/admin/contratos/modelos') ? 'active' : '') ?>" 
                href="/admin/contratos">
                 <i class="bi bi-file-earmark-text"></i> Contratos
+            </a>
+        </li>
+        <li>
+            <a class="nav-link <?= e(str_contains($_SERVER['REQUEST_URI'], '/admin/contratos/modelos') ? 'active' : '') ?>" 
+               href="/admin/contratos/modelos">
+                <i class="bi bi-file-earmark-ruled"></i> Modelos de contrato
             </a>
         </li>
         <li>
@@ -113,6 +125,12 @@
             </a>
         </li>
         <?php } ?>
+        <li>
+            <a class="nav-link <?= e(str_contains($_SERVER['REQUEST_URI'], '/admin/seguranca') ? 'active' : '') ?>" 
+               href="/admin/seguranca">
+                <i class="bi bi-shield-lock"></i> Segurança
+            </a>
+        </li>
         <li>
             <a class="nav-link <?= e(str_contains($_SERVER['REQUEST_URI'], '/admin/auditoria') ? 'active' : '') ?>" 
                href="/admin/auditoria">

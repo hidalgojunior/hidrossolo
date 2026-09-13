@@ -63,7 +63,7 @@ $metaKeywords = $seo['keywords'] ?? 'poços artesianos, perfuração de poços, 
     <title><?= e($pageTitle) ?> | <?= e($app_name) ?></title>
 
     <link rel="icon" href="/assets/images/hidrossolo.png" type="image/png">
-    <link rel="stylesheet" href="/assets/css/app.css">
+    <link rel="stylesheet" href="<?= e(asset_v('assets/css/app.css')) ?>">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
 
     <?= $view->getSection('styles') ?>
@@ -78,7 +78,7 @@ $metaKeywords = $seo['keywords'] ?? 'poços artesianos, perfuração de poços, 
     <?= $view->partial('components.footer') ?>
     <?= $view->partial('components.whatsapp') ?>
 
-    <script src="/assets/js/ui.js" defer></script>
+    <script src="<?= e(asset_v('assets/js/ui.js')) ?>" defer></script>
 
     <?php
     // Banner de consentimento de cookies (LGPD)
@@ -120,8 +120,23 @@ $metaKeywords = $seo['keywords'] ?? 'poços artesianos, perfuração de poços, 
         }
     </style>
     <script>
+    (function () {
+        var banner = document.getElementById('cookie-banner');
+        if (!banner) return;
+
+        // Sobe o botão flutuante do WhatsApp para não ficar atrás do banner
+        var apply = function () {
+            document.documentElement.style.setProperty('--cookie-h', banner.offsetHeight + 'px');
+        };
+
+        apply();
+        window.addEventListener('resize', apply);
+    })();
+
     function acceptCookies() {
-        document.getElementById('cookie-banner').style.display = 'none';
+        var banner = document.getElementById('cookie-banner');
+        if (banner) banner.style.display = 'none';
+        document.documentElement.style.setProperty('--cookie-h', '0px');
         document.cookie = 'cookie_consent=1;path=/;max-age=' + (365 * 24 * 60 * 60);
     }
     </script>

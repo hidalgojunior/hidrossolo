@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controllers\Admin;
 
 use App\Core\BaseController;
+use App\Core\Security;
 
 class AuthController extends BaseController
 {
@@ -27,33 +28,46 @@ class AuthController extends BaseController
         ]);
 
         $db = $this->db();
+        $email = (string) $data['email'];
+        $ip = Security::clientIp();
+
+        // Bloqueio progressivo contra força bruta
+        $blockedFor = Security::loginBlockedFor($email, $ip);
+
+        if ($blockedFor > 0) {
+            Security::recordLoginAttempt($email, $ip, false, 'blocked');
+            Security::audit('login_blocked', 'user', null, ['email' => $email]);
+            $_SESSION['flash_error'] = 'Muitas tentativas. Tente novamente em ' . (int) ceil($blockedFor / 60) . ' minuto(s).';
+            $this->redirect('/admin/login');
+        }
 
         $user = $db->fetch(
-            "SELECT id, name, email, password, role_id FROM users WHERE email = ? AND active = 1",
-            [$data['email']]
+            "SELECT u.id, u.name, u.email, u.password, u.role_id, u.active, r.name AS role_name
+             FROM users u
+             LEFT JOIN roles r ON r.id = u.role_id
+             WHERE u.email = ? LIMIT 1",
+            [$email]
         );
 
-        if (!$user || !password_verify($data['password'], $user['password'])) {
+        if (!$user || !$user['active'] || !password_verify($data['password'], $user['password'])) {
+            Security::recordLoginAttempt($email, $ip, false, 'invalid_credentials');
+            Security::audit('login_failed', 'user', null, ['email' => $email]);
             $_SESSION['flash_error'] = 'E-mail ou senha inválidos.';
             $this->redirect('/admin/login');
         }
 
-        // Atualizar último login
+        // Sessão limpa + ID renovado (evita fixação de sessão)
+        Security::clearLoginAttempts($email, $ip);
+        Security::loginSession($user);
+        Security::recordLoginAttempt($email, $ip, true, 'ok');
+
         $db->update('users', ['last_login' => date('Y-m-d H:i:s')], 'id = ?', [$user['id']]);
+        Security::audit('login', 'user', (int) $user['id']);
 
-        // Registrar auditoria
-        $db->insert('audit_logs', [
-            'user_id' => $user['id'],
-            'action' => 'login',
-            'ip_address' => $_SERVER['REMOTE_ADDR'] ?? null,
-            'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? null,
-        ]);
-
-        // Criar sessão
-        $_SESSION['user_id'] = $user['id'];
-        $_SESSION['user_name'] = $user['name'];
-        $_SESSION['user_email'] = $user['email'];
-        $_SESSION['user_role'] = $user['role_id'];
+        // Motorista vai direto para a área dele
+        if (($user['role_name'] ?? '') === 'motorista') {
+            $this->redirect('/motorista');
+        }
 
         $this->redirect('/admin');
     }
@@ -61,14 +75,10 @@ class AuthController extends BaseController
     public function logout(): void
     {
         if (isset($_SESSION['user_id'])) {
-            $this->db()->insert('audit_logs', [
-                'user_id' => $_SESSION['user_id'],
-                'action' => 'logout',
-                'ip_address' => $_SERVER['REMOTE_ADDR'] ?? null,
-            ]);
+            Security::audit('logout', 'user', (int) $_SESSION['user_id']);
         }
 
-        session_destroy();
+        Security::destroySession();
         $this->redirect('/admin/login');
     }
 
@@ -102,7 +112,17 @@ class AuthController extends BaseController
                 $_SESSION['flash_error'] = 'As senhas não conferem.';
                 $this->redirect('/admin/perfil');
             }
+
+            $issues = Security::passwordIssues((string) $_POST['new_password'], (string) ($_SESSION['user_email'] ?? ''));
+
+            if ($issues !== []) {
+                $_SESSION['flash_error'] = implode(' ', $issues);
+                $this->redirect('/admin/perfil');
+            }
+
             $updateData['password'] = password_hash($_POST['new_password'], PASSWORD_BCRYPT, ['cost' => 12]);
+            $updateData['password_changed_at'] = date('Y-m-d H:i:s');
+            Security::audit('password_changed', 'user', (int) $_SESSION['user_id']);
         }
 
         $this->db()->update('users', $updateData, 'id = ?', [$_SESSION['user_id']]);

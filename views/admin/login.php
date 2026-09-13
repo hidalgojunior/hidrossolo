@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - Hidrossolo</title>
-    <link rel="stylesheet" href="/assets/css/app.css">
+    <link rel="stylesheet" href="<?= e(asset_v('assets/css/app.css')) ?>">
     <style>
         :root { --primary: #1e40af; --gradient: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); }
         body {

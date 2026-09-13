@@ -40,7 +40,7 @@ class OrcamentoController extends BaseController
             'service_type' => $_POST['service_type'],
             'description' => $_POST['description'],
             'address' => $_POST['address'] ?? '',
-            'preferred_date' => $_POST['preferred_date'] ?: null,
+            'preferred_date' => ($_POST['preferred_date'] ?? '') ?: null,
             'status' => 'novo',
         ]);
 

@@ -69,6 +69,7 @@
         <?php if (empty($items)) { ?>
             <p class="text-muted text-center py-4">Nenhum item neste menu.</p>
         <?php } else { ?>
+            <div class="table-responsive">
             <table class="table table-hover mb-0">
                 <thead class="table-light">
                     <tr>
@@ -104,6 +105,7 @@
                     <?php } ?>
                 </tbody>
             </table>
+            </div>
         <?php } ?>
     </div>
 </div>

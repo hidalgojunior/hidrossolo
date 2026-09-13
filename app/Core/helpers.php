@@ -100,8 +100,21 @@ if (!function_exists('asset')) {
     }
 }
 
-if (!function_exists('json_attr')) {
+if (!function_exists('asset_v')) {
     /**
+     * URL de um asset com versionamento por data de modificação,
+     * evitando cache antigo de CSS/JS no navegador.
+     */
+    function asset_v(string $path): string
+    {
+        $url = '/' . ltrim($path, '/');
+        $file = dirname(__DIR__, 2) . $url;
+
+        return is_file($file) ? $url . '?v=' . filemtime($file) : $url;
+    }
+}
+
+if (!function_exists('json_attr')) {    /**
      * Codifica dados para uso seguro dentro de atributos/scripts.
      */
     function json_attr(mixed $value): string
@@ -110,5 +123,30 @@ if (!function_exists('json_attr')) {
             $value,
             JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT
         ) ?: '[]';
+    }
+}
+
+if (!function_exists('asset_label')) {
+    /**
+     * Rótulo amigável de um veículo ou equipamento (gerador, compressor...).
+     */
+    function asset_label(array $asset): string
+    {
+        $brand = trim((string) ($asset['brand'] ?? ''));
+        $model = trim((string) ($asset['model'] ?? ''));
+
+        if (($asset['category'] ?? 'vehicle') === 'equipment') {
+            $tipo = trim((string) ($asset['equipment_type'] ?? ''));
+            $label = trim($tipo . ' ' . $brand . ' ' . $model);
+
+            return $label !== '' ? $label : 'Equipamento #' . ($asset['id'] ?? '');
+        }
+
+        $plate = trim((string) ($asset['plate'] ?? ''));
+        $label = $plate !== '' ? $plate : 'Veículo #' . ($asset['id'] ?? '');
+
+        $rest = trim($brand . ' ' . $model);
+
+        return $rest !== '' ? $label . ' — ' . $rest : $label;
     }
 }

@@ -11,8 +11,7 @@ $isActive = static function (string $path) use ($uri): string {
 <nav class="navbar navbar-expand-lg fixed-top bg-white">
     <div class="container">
         <a class="navbar-brand" href="/">
-            <img src="<?= e($logo ?? '/assets/images/hidrossolo.png') ?>" alt="Hidrossolo">
-            <span>Hidrossolo</span>
+            <img src="<?= e($logo ?? '/assets/images/hidrossolo.png') ?>" alt="Hidrossolo Poços Artesianos">
         </a>
 
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain"

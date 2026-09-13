@@ -65,11 +65,11 @@ $heroSubtitle = !empty($hero['subtitle']) ? $hero['subtitle'] : 'Perfuração, l
 </section>
 
 <!-- Estatísticas -->
-<section class="section" style="padding-top:0">
+<section class="section section-stats">
     <div class="container">
-        <div class="row g-4" style="margin-top:-3rem">
+        <div class="row g-4 stats-overlap">
             <?php foreach ($stats as $stat) { ?>
-            <div class="col-12 col-md-6 col-lg-3">
+            <div class="col-6 col-lg-3">
                 <div class="stat-card h-100">
                     <div class="d-flex align-items-center gap-3">
                         <span class="stat-icon bg-primary bg-opacity-10 text-primary">

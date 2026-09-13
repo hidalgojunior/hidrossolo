@@ -39,6 +39,57 @@ class DashboardController extends BaseController
         $notificacoes = $db->fetchAll("SELECT * FROM notifications WHERE read_at IS NULL ORDER BY created_at DESC LIMIT 10");
         $totalNotificacoes = $db->fetch("SELECT COUNT(*) as c FROM notifications WHERE read_at IS NULL")['c'] ?? 0;
 
+        // ---- Frota & Equipamentos ----
+        $frotaContagem = $db->fetch(
+            "SELECT
+                COALESCE(SUM(category = 'vehicle' AND status = 'active'), 0) AS veiculos_ativos,
+                COALESCE(SUM(category = 'equipment' AND status = 'active'), 0) AS equipamentos_ativos,
+                COALESCE(SUM(status = 'maintenance'), 0) AS em_manutencao
+             FROM vehicles"
+        );
+
+        $custoCombMes = (float) ($db->fetch(
+            "SELECT COALESCE(SUM(cost),0) AS c FROM vehicle_fuel
+             WHERE fuel_date >= DATE_FORMAT(CURDATE(), '%Y-%m-01')"
+        )['c'] ?? 0);
+
+        $custoManutMes = (float) ($db->fetch(
+            "SELECT COALESCE(SUM(cost),0) AS c FROM vehicle_maintenance
+             WHERE maintenance_date >= DATE_FORMAT(CURDATE(), '%Y-%m-01')"
+        )['c'] ?? 0);
+
+        $litrosMes = (float) ($db->fetch(
+            "SELECT COALESCE(SUM(liters),0) AS c FROM vehicle_fuel
+             WHERE fuel_date >= DATE_FORMAT(CURDATE(), '%Y-%m-01')"
+        )['c'] ?? 0);
+
+        $frotaTop = $db->fetchAll(
+            "SELECT v.id, v.plate, v.brand, v.model, v.category, v.equipment_type,
+                    COALESCE(fc.custo, 0) AS custo_combustivel,
+                    COALESCE(mt.custo, 0) AS custo_manutencao,
+                    (COALESCE(fc.custo, 0) + COALESCE(mt.custo, 0)) AS custo_total
+             FROM vehicles v
+             LEFT JOIN (
+                 SELECT vehicle_id, SUM(cost) AS custo FROM vehicle_fuel
+                 WHERE fuel_date >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH) GROUP BY vehicle_id
+             ) fc ON fc.vehicle_id = v.id
+             LEFT JOIN (
+                 SELECT vehicle_id, SUM(cost) AS custo FROM vehicle_maintenance
+                 WHERE maintenance_date >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH) GROUP BY vehicle_id
+             ) mt ON mt.vehicle_id = v.id
+             ORDER BY custo_total DESC
+             LIMIT 5"
+        );
+
+        $ultimosLancamentosFrota = $db->fetchAll(
+            "SELECT 'fuel' AS tipo, f.fuel_date AS data, f.cost, f.liters, v.plate, v.equipment_type, v.category, u.name AS usuario
+             FROM vehicle_fuel f
+             JOIN vehicles v ON v.id = f.vehicle_id
+             LEFT JOIN users u ON u.id = f.user_id
+             ORDER BY f.id DESC
+             LIMIT 5"
+        );
+
         echo $this->view('admin.dashboard', [
             'title' => 'Dashboard',
             'totalContatos' => $totalContatos,
@@ -52,6 +103,12 @@ class DashboardController extends BaseController
             'chartCombustivel' => $chartCombustivel,
             'ultimosContatos' => $ultimosContatos,
             'contratosVencendo' => $contratosVencendo,
+            'frotaContagem' => $frotaContagem,
+            'custoCombMes' => $custoCombMes,
+            'custoManutMes' => $custoManutMes,
+            'litrosMes' => $litrosMes,
+            'frotaTop' => $frotaTop,
+            'ultimosLancamentosFrota' => $ultimosLancamentosFrota,
             'config' => $this->config('company'),
         ]);
     }

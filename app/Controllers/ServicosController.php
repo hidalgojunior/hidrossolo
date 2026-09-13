@@ -42,6 +42,16 @@ class ServicosController extends BaseController
             return;
         }
 
+        // Serviço sem conteúdo visível: trata como página inexistente
+        $temConteudo = trim((string) ($servico['content'] ?? '')) !== ''
+            || trim((string) ($servico['description'] ?? '')) !== '';
+
+        if (!$temConteudo) {
+            http_response_code(404);
+            echo $this->view('errors.404');
+            return;
+        }
+
         $galeria = $db->fetchAll(
             "SELECT * FROM service_images WHERE service_id = ? ORDER BY sort_order",
             [$servico['id']]

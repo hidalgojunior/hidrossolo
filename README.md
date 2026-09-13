@@ -409,6 +409,62 @@ chown -R 82:82 assets/uploads && chmod -R 775 assets/uploads
 
 O nginx também define `client_max_body_size 64M` para acomodar arquivos de até 10MB.
 
+# Área do Motorista
+
+Papel dedicado (`motorista`) com acesso **exclusivo** a `/motorista`, onde só é possível
+lançar abastecimentos e manutenções. O motorista escolhe o veículo/equipamento no momento
+do lançamento; ele não acessa nenhuma outra tela do painel.
+
+- Rota: `/motorista` (layout próprio, mobile-first)
+- Middleware: `App\Middleware\MotoristaMiddleware`
+- Ao fazer login, o motorista é redirecionado automaticamente para a área dele
+- Tentativas de acessar `/admin` são devolvidas para `/motorista`
+- Cada lançamento grava `user_id`, alimenta a auditoria e atualiza o odômetro/horímetro do ativo
+
+# Frota & Equipamentos
+
+Veículos e equipamentos (geradores, compressores...) compartilham a tabela `vehicles`,
+diferenciados pela coluna `category`.
+
+- `/admin/frota` — cadastro e listagem com filtro por tipo
+- `/admin/frota/relatorios` — consumo de combustível e custos de manutenção por ativo,
+  com filtro de período, litros, R$/km, km/L, ranking de maior custo e gráficos
+- O dashboard inicial traz um resumo do mês (combustível, manutenção, ativos) e os maiores custos
+
+# Contratos: modelos com variáveis
+
+1. Em **Modelos de contrato** (`/admin/contratos/modelos`) escreva o texto com coringas
+   como `{{cliente}}`, `{{documento}}`, `{{valor}}`, `{{data_inicio}}`.
+2. Ao criar um contrato (`/admin/contratos/novo`), escolha o modelo: os campos das
+   variáveis aparecem automaticamente para preencher.
+3. As variáveis de cliente, número, valor e datas são preenchidas sozinhas a partir do cadastro.
+4. Gere o documento em `/admin/contratos/documento/{id}` (pronto para imprimir) ou baixe
+   o PDF em `/admin/contratos/pdf/{id}` (gerado no servidor com **dompdf**).
+
+Variáveis automáticas: `cliente`, `contratante`, `numero_contrato`, `responsavel`,
+`valor`, `data_inicio`, `data_fim`, `data_hoje`, `cidade`, `empresa`, `endereco_empresa`,
+`telefone_empresa`, `email_empresa`.
+
+# Segurança e Governança
+
+Implementado em `app/Core/Security.php` (carregado no bootstrap da aplicação):
+
+- **Headers**: CSP restritiva, `X-Frame-Options`, `X-Content-Type-Options`,
+  `Referrer-Policy`, `Permissions-Policy`, COOP e HSTS (quando HTTPS)
+- **Sessão**: cookies HttpOnly + SameSite=Lax, `use_strict_mode`, ID de 48 caracteres,
+  rotação de ID no login, expiração por inatividade (2h) e limite absoluto (12h)
+- **Força bruta**: máx. 5 falhas por e-mail e 12 por IP em 15 min → bloqueio de 15 min
+- **Política de senha**: 10+ caracteres, com letra e número, sem dados do e-mail e sem senhas comuns
+- **Auditoria**: login, login falho, bloqueio, logout, troca de senha, criação/edição de
+  veículos, equipamentos, contratos, modelos e lançamentos do motorista
+- **Uploads**: nomes aleatórios, validação de extensão/tamanho e verificação de scripts
+  executáveis na pasta pública (relatório em `/admin/seguranca`)
+- **Painel de segurança** (`/admin/seguranca`): mostra o estado real das proteções,
+  falhas de login nas últimas 24h, IPs suspeitos e contas com senha antiga
+
+> Em produção, habilite HTTPS para o HSTS entrar em ação e mantenha o
+> `client_max_body_size` do nginx coerente com o limite de upload.
+
 ---
 
 # Segurança

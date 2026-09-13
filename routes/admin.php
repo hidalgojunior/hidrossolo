@@ -100,13 +100,29 @@ $router->group(['prefix' => 'admin', 'middleware' => [AuthMiddleware::class, Csr
     $router->get('/frota', [VeiculosController::class, 'index']);
     $router->get('/frota/novo', [VeiculosController::class, 'create']);
     $router->post('/frota/novo', [VeiculosController::class, 'store']);
+    $router->get('/frota/relatorios', [\App\Controllers\Admin\RelatoriosFrotaController::class, 'index']);
     $router->get('/frota/editar/{id}', [VeiculosController::class, 'edit']);
     $router->post('/frota/editar/{id}', [VeiculosController::class, 'update']);
+
+    // Contratos — modelos com variáveis (antes das rotas com {id})
+    $router->get('/contratos/modelos', [\App\Controllers\Admin\ContratoTemplatesController::class, 'index']);
+    $router->get('/contratos/modelos/novo', [\App\Controllers\Admin\ContratoTemplatesController::class, 'create']);
+    $router->post('/contratos/modelos/novo', [\App\Controllers\Admin\ContratoTemplatesController::class, 'store']);
+    $router->get('/contratos/modelos/editar/{id}', [\App\Controllers\Admin\ContratoTemplatesController::class, 'edit']);
+    $router->post('/contratos/modelos/editar/{id}', [\App\Controllers\Admin\ContratoTemplatesController::class, 'update']);
+    $router->post('/contratos/modelos/excluir/{id}', [\App\Controllers\Admin\ContratoTemplatesController::class, 'delete']);
 
     // Contratos
     $router->get('/contratos', [ContratosController::class, 'index']);
     $router->get('/contratos/novo', [ContratosController::class, 'create']);
     $router->post('/contratos/novo', [ContratosController::class, 'store']);
+    $router->get('/contratos/editar/{id}', [ContratosController::class, 'edit']);
+    $router->post('/contratos/editar/{id}', [ContratosController::class, 'update']);
+    $router->get('/contratos/documento/{id}', [ContratosController::class, 'documento']);
+    $router->get('/contratos/pdf/{id}', [ContratosController::class, 'pdf']);
+
+    // Segurança
+    $router->get('/seguranca', [\App\Controllers\Admin\SegurancaController::class, 'index']);
 
     // Usuários
     $router->get('/usuarios', [UsuariosController::class, 'index']);

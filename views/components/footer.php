@@ -59,7 +59,13 @@ $year = date('Y');
 
         <div class="footer-bottom">
             <p class="mb-0">&copy; <?= e($year) ?> Hidrossolo Poços Artesianos. Todos os direitos reservados.</p>
-            <p class="mb-0"><a href="/politica-privacidade">Política de Privacidade</a></p>
+            <p class="mb-0 footer-bottom-links">
+                <a href="/politica-privacidade">Política de Privacidade</a>
+                <span class="footer-divider" aria-hidden="true">•</span>
+                <a href="/admin/login" class="footer-admin-link" title="Acesso restrito à equipe Hidrossolo">
+                    <i class="bi bi-lock-fill"></i> Área Restrita
+                </a>
+            </p>
         </div>
     </div>
 </footer>

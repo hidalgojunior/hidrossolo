@@ -33,6 +33,113 @@
     </div>
 </div>
 
+<!-- Frota & Equipamentos -->
+<div class="card mb-4">
+    <div class="card-header bg-white d-flex flex-wrap justify-content-between align-items-center gap-2">
+        <strong><i class="bi bi-truck me-1"></i> Frota &amp; Equipamentos — visão do mês</strong>
+        <a href="/admin/frota/relatorios" class="btn btn-sm btn-outline-primary">
+            <i class="bi bi-graph-up me-1"></i>Relatórios completos
+        </a>
+    </div>
+    <div class="card-body">
+        <div class="row g-3 mb-3">
+            <div class="col-6 col-lg-3">
+                <div class="stat-card">
+                    <div class="stat-icon bg-primary bg-opacity-10 text-primary"><i class="bi bi-truck"></i></div>
+                    <div>
+                        <div class="stat-value"><?= e((int) ($frotaContagem['veiculos_ativos'] ?? 0)) ?></div>
+                        <div class="stat-label">Veículos ativos</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-lg-3">
+                <div class="stat-card">
+                    <div class="stat-icon bg-info bg-opacity-10 text-info"><i class="bi bi-gear-wide-connected"></i></div>
+                    <div>
+                        <div class="stat-value"><?= e((int) ($frotaContagem['equipamentos_ativos'] ?? 0)) ?></div>
+                        <div class="stat-label">Equipamentos ativos</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-lg-3">
+                <div class="stat-card">
+                    <div class="stat-icon bg-success bg-opacity-10 text-success"><i class="bi bi-fuel-pump"></i></div>
+                    <div>
+                        <div class="stat-value">R$ <?= e(number_format($custoCombMes ?? 0, 0, ',', '.')) ?></div>
+                        <div class="stat-label">Combustível · <?= e(number_format($litrosMes ?? 0, 0, ',', '.')) ?> L</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-lg-3">
+                <div class="stat-card">
+                    <div class="stat-icon bg-warning bg-opacity-10 text-warning"><i class="bi bi-tools"></i></div>
+                    <div>
+                        <div class="stat-value">R$ <?= e(number_format($custoManutMes ?? 0, 0, ',', '.')) ?></div>
+                        <div class="stat-label">Manutenções</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-lg-7">
+                <h6 class="text-muted">Maior custo nos últimos 12 meses</h6>
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover mb-0">
+                        <thead class="table-light">
+                            <tr><th>Ativo</th><th class="text-end">Combustível</th><th class="text-end">Manutenção</th><th class="text-end">Total</th></tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach (($frotaTop ?? []) as $f) { ?>
+                                <tr>
+                                    <td>
+                                        <?php if (($f['category'] ?? 'vehicle') === 'equipment') { ?>
+                                            <span class="badge bg-info me-1"><?= e($f['equipment_type'] ?: 'Equip.') ?></span>
+                                        <?php } ?>
+                                        <?= e(asset_label($f)) ?>
+                                    </td>
+                                    <td class="text-end">R$ <?= e(number_format((float) $f['custo_combustivel'], 2, ',', '.')) ?></td>
+                                    <td class="text-end">R$ <?= e(number_format((float) $f['custo_manutencao'], 2, ',', '.')) ?></td>
+                                    <td class="text-end"><strong>R$ <?= e(number_format((float) $f['custo_total'], 2, ',', '.')) ?></strong></td>
+                                </tr>
+                            <?php } ?>
+                            <?php if (empty($frotaTop)) { ?>
+                                <tr><td colspan="4" class="text-center text-muted py-4">Nenhum lançamento de frota ainda.</td></tr>
+                            <?php } ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="col-lg-5">
+                <h6 class="text-muted">Últimos lançamentos</h6>
+                <div class="table-responsive">
+                    <table class="table table-sm mb-0">
+                        <thead class="table-light">
+                            <tr><th>Data</th><th>Ativo</th><th>Por</th><th class="text-end">Valor</th></tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach (($ultimosLancamentosFrota ?? []) as $l) { ?>
+                                <tr>
+                                    <td><?= e(date('d/m', strtotime($l['data']))) ?></td>
+                                    <td>
+                                        <?= e(asset_label($l)) ?>
+                                    </td>
+                                    <td class="text-muted small"><?= e($l['usuario'] ?? '—') ?></td>
+                                    <td class="text-end">R$ <?= e(number_format((float) $l['cost'], 2, ',', '.')) ?></td>
+                                </tr>
+                            <?php } ?>
+                            <?php if (empty($ultimosLancamentosFrota)) { ?>
+                                <tr><td colspan="4" class="text-center text-muted py-4">Sem lançamentos.</td></tr>
+                            <?php } ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <?php
 $meses = ['01'=>'Jan','02'=>'Fev','03'=>'Mar','04'=>'Abr','05'=>'Mai','06'=>'Jun','07'=>'Jul','08'=>'Ago','09'=>'Set','10'=>'Out','11'=>'Nov','12'=>'Dez'];
 $labelsM = []; $dataM = [];

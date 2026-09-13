@@ -9,12 +9,14 @@
         <div class="card mb-4">
             <div class="card-body">
                 <h5><i class="bi bi-info-circle me-2 text-primary"></i>Informações Gerais</h5>
+                <div class="table-responsive">
                 <table class="table table-sm mt-3">
                     <tr><td style="width:160px"><strong>Base URL</strong></td><td><code><?= e($app_url) ?>/api</code></td></tr>
                     <tr><td><strong>Formato</strong></td><td><code>application/json</code></td></tr>
                     <tr><td><strong>Collection Postman</strong></td><td><a href="/admin/docs/Hidrossolo-API.postman_collection.json" class="btn btn-sm btn-outline-primary"><i class="bi bi-download me-1"></i>Download</a></td></tr>
                     <tr><td><strong>DFD Banco</strong></td><td><a href="/admin/docs/DATABASE_DFD.md" class="btn btn-sm btn-outline-secondary"><i class="bi bi-diagram-3 me-1"></i>Ver Diagrama</a></td></tr>
                 </table>
+                </div>
             </div>
         </div>
 
@@ -136,6 +138,7 @@ o token já está pré-configurado como variável @<?= e(token) ?>.</code></pre>
         <div class="card mb-4">
             <div class="card-header bg-white"><h5 class="mb-0">🌐 Endpoints Públicos</h5></div>
             <div class="card-body p-0">
+                <div class="table-responsive">
                 <table class="table table-hover mb-0">
                     <thead class="table-light">
                         <tr><th style="width:80px">Método</th><th>Endpoint</th><th>Descrição</th></tr>
@@ -153,6 +156,7 @@ o token já está pré-configurado como variável @<?= e(token) ?>.</code></pre>
                         </tr>
                     </tbody>
                 </table>
+                </div>
             </div>
         </div>
 
@@ -160,6 +164,7 @@ o token já está pré-configurado como variável @<?= e(token) ?>.</code></pre>
         <div class="card mb-4">
             <div class="card-header bg-white"><h5 class="mb-0">🔐 Endpoints Autenticados</h5></div>
             <div class="card-body p-0">
+                <div class="table-responsive">
                 <table class="table table-hover mb-0">
                     <thead class="table-light">
                         <tr><th style="width:80px">Método</th><th>Endpoint</th><th>Descrição</th></tr>
@@ -269,6 +274,7 @@ o token já está pré-configurado como variável @<?= e(token) ?>.</code></pre>
                         </tr>
                     </tbody>
                 </table>
+                </div>
             </div>
         </div>
     </div>

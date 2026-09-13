@@ -1,0 +1,171 @@
+/* =========================================================================
+   Hidrossolo — Área do Motorista (mobile-first)
+   ========================================================================= */
+
+body.driver { background: #eef2f9; }
+
+.driver-topbar {
+    position: sticky;
+    top: 0;
+    z-index: 1030;
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    padding: .7rem 1rem;
+    background: linear-gradient(135deg, #101a2e, #16233d);
+    color: #fff;
+    box-shadow: 0 2px 14px rgba(2, 6, 23, .25);
+}
+
+.driver-topbar .driver-brand {
+    display: flex;
+    align-items: center;
+    gap: .55rem;
+    color: #fff;
+    font-weight: 700;
+    font-size: 1rem;
+    text-decoration: none;
+}
+
+.driver-topbar .driver-brand img { height: 30px; }
+
+.driver-user {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+    font-size: .82rem;
+    color: #cbd5e1;
+}
+
+.driver-tabs {
+    display: flex;
+    gap: .4rem;
+    padding: .6rem 1rem;
+    background: #fff;
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+.driver-tabs::-webkit-scrollbar { display: none; }
+
+.driver-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    padding: .5rem .95rem;
+    border-radius: var(--radius-pill);
+    background: var(--bg-alt);
+    color: #475569;
+    font-size: .85rem;
+    font-weight: 600;
+    white-space: nowrap;
+    text-decoration: none;
+    transition: background var(--transition), color var(--transition);
+}
+
+.driver-tab:hover { background: #e2e8f0; color: var(--text); }
+.driver-tab.active { background: var(--gradient); color: #fff; }
+
+.driver-main {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 1rem 1rem 4rem;
+}
+
+.driver-card {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1.15rem;
+    margin-bottom: 1rem;
+    box-shadow: var(--shadow-xs);
+}
+
+.driver-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: .7rem;
+    margin-bottom: 1rem;
+}
+
+.driver-stat {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: .85rem .7rem;
+    text-align: center;
+    box-shadow: var(--shadow-xs);
+}
+
+.driver-stat .value { font-size: 1.25rem; font-weight: 700; color: var(--heading); line-height: 1.2; }
+.driver-stat .label { font-size: .7rem; color: var(--text-muted); }
+
+.driver-actions { display: grid; grid-template-columns: 1fr 1fr; gap: .7rem; }
+
+.driver-action {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: .5rem;
+    padding: 1.2rem .8rem;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    color: var(--text);
+    font-weight: 600;
+    font-size: .9rem;
+    text-align: center;
+    text-decoration: none;
+    box-shadow: var(--shadow-xs);
+    transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition);
+}
+
+.driver-action:hover { transform: translateY(-3px); box-shadow: var(--shadow); border-color: var(--primary-light); color: var(--primary); }
+.driver-action i { font-size: 1.6rem; color: var(--primary); }
+
+/* Listas */
+.driver-list { display: flex; flex-direction: column; gap: .6rem; }
+
+.driver-item {
+    display: flex;
+    align-items: flex-start;
+    gap: .75rem;
+    padding: .85rem 1rem;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--primary-light);
+    border-radius: var(--radius);
+}
+
+.driver-item.is-maintenance { border-left-color: var(--warning); }
+.driver-item .asset { font-weight: 700; font-size: .9rem; }
+.driver-item .meta { font-size: .78rem; color: var(--text-muted); }
+.driver-item .amount { margin-left: auto; font-weight: 700; white-space: nowrap; }
+
+.driver-empty {
+    padding: 2rem 1rem;
+    text-align: center;
+    color: var(--text-muted);
+    background: #fff;
+    border: 1px dashed var(--border-strong);
+    border-radius: var(--radius-lg);
+}
+
+/* Formulário */
+.driver-form .form-label { font-weight: 600; }
+.driver-form .form-control,
+.driver-form .form-select { padding: .8rem .9rem; font-size: 1rem; }
+
+.driver-submit {
+    width: 100%;
+    padding: .95rem;
+    font-size: 1rem;
+    border-radius: var(--radius);
+}
+
+@media (max-width: 400px) {
+    .driver-stats { grid-template-columns: repeat(3, 1fr); gap: .5rem; }
+    .driver-stat .value { font-size: 1.05rem; }
+    .driver-actions { grid-template-columns: 1fr; }
+}
