@@ -1,5 +1,6 @@
 <?php
 $view->layout('layouts.motorista');
+$extrasPorAbastecimento = $extrasPorAbastecimento ?? [];
 ?>
 
 <?php $view->section('content'); ?>
@@ -19,6 +20,7 @@ $view->layout('layouts.motorista');
 <?php } else { ?>
     <div class="driver-list">
         <?php foreach ($registros as $r) { ?>
+            <?php $extras = $extrasPorAbastecimento[(int) $r['id']] ?? []; ?>
             <div class="driver-item">
                 <div>
                     <div class="asset"><?= e(asset_label($r)) ?></div>
@@ -32,11 +34,29 @@ $view->layout('layouts.motorista');
                             · <?= e(number_format((float) $r['hours_at_refuel'], 1, ',', '.')) ?> h
                         <?php } ?>
                     </div>
+
+                    <?php if ($extras !== []) { ?>
+                        <ul class="driver-extras">
+                            <?php foreach ($extras as $extra) { ?>
+                                <li>
+                                    <i class="bi bi-plus-circle"></i>
+                                    <?= e($extra['description']) ?>
+                                    <span>R$ <?= e(number_format((float) $extra['amount'], 2, ',', '.')) ?></span>
+                                </li>
+                            <?php } ?>
+                        </ul>
+                    <?php } ?>
+
                     <?php if (!empty($r['notes'])) { ?>
                         <div class="meta fst-italic"><?= e($r['notes']) ?></div>
                     <?php } ?>
                 </div>
-                <div class="amount">R$ <?= e(number_format((float) $r['cost'], 2, ',', '.')) ?></div>
+                <div class="amount">
+                    R$ <?= e(number_format((float) $r['cost'] + (float) $r['extras_total'], 2, ',', '.')) ?>
+                    <?php if ((float) $r['extras_total'] > 0) { ?>
+                        <div class="meta text-end">comb. R$ <?= e(number_format((float) $r['cost'], 2, ',', '.')) ?></div>
+                    <?php } ?>
+                </div>
             </div>
         <?php } ?>
     </div>

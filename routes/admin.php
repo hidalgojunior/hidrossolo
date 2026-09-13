@@ -101,6 +101,12 @@ $router->group(['prefix' => 'admin', 'middleware' => [AuthMiddleware::class, Csr
     $router->get('/frota/novo', [VeiculosController::class, 'create']);
     $router->post('/frota/novo', [VeiculosController::class, 'store']);
     $router->get('/frota/relatorios', [\App\Controllers\Admin\RelatoriosFrotaController::class, 'index']);
+
+    // Agenda de manutenção
+    $router->get('/agenda', [\App\Controllers\Admin\AgendaController::class, 'index']);
+    $router->post('/agenda/novo', [\App\Controllers\Admin\AgendaController::class, 'store']);
+    $router->post('/agenda/status/{id}', [\App\Controllers\Admin\AgendaController::class, 'status']);
+    $router->post('/agenda/excluir/{id}', [\App\Controllers\Admin\AgendaController::class, 'delete']);
     $router->get('/frota/editar/{id}', [VeiculosController::class, 'edit']);
     $router->post('/frota/editar/{id}', [VeiculosController::class, 'update']);
 

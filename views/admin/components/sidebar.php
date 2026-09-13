@@ -72,6 +72,12 @@
             </a>
         </li>
         <li>
+            <a class="nav-link <?= e(str_contains($_SERVER['REQUEST_URI'], '/admin/agenda') ? 'active' : '') ?>" 
+               href="/admin/agenda">
+                <i class="bi bi-calendar3"></i> Agenda de manutenção
+            </a>
+        </li>
+        <li>
             <a class="nav-link <?= e(str_contains($_SERVER['REQUEST_URI'], '/admin/manutencoes') ? 'active' : '') ?>" 
                href="/admin/manutencoes">
                 <i class="bi bi-wrench"></i> Manutenções

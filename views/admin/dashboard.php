@@ -81,10 +81,39 @@
             </div>
         </div>
 
+        <?php if (!empty($frotaPorCombustivel)) { ?>
+            <div class="mb-4">
+                <h6 class="text-muted">Ativos por tipo de combustível (12 meses)</h6>
+                <div class="row g-2">
+                    <?php foreach ($frotaPorCombustivel as $fc) { ?>
+                        <?php $comb = \App\Support\FleetAgenda::combustivelInfo($fc['fuel_type'] ?? null, $fc['category'] ?? 'vehicle'); ?>
+                        <div class="col-6 col-md-4 col-xl-3">
+                            <div class="card h-100" style="border-left:5px solid <?= e($comb['hex']) ?>">
+                                <div class="card-body py-2 px-3">
+                                    <div class="d-flex align-items-center justify-content-between">
+                                        <span class="badge <?= e($comb['bg']) ?>" style="background:<?= e($comb['hex']) ?> !important">
+                                            <?= e($comb['label']) ?>
+                                        </span>
+                                        <strong class="small"><?= e((int) $fc['ativos']) ?> ativo(s)</strong>
+                                    </div>
+                                    <div class="small text-muted mt-2">
+                                        <?= e(number_format((float) $fc['litros'], 0, ',', '.')) ?> L ·
+                                        R$ <?= e(number_format((float) $fc['custo'], 0, ',', '.')) ?> combustível
+                                    </div>
+                                    <div class="small text-muted">
+                                        Manutenção: R$ <?= e(number_format((float) $fc['manutencao'], 0, ',', '.')) ?>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    <?php } ?>
+                </div>
+            </div>
+        <?php } ?>
+
         <div class="row g-4">
             <div class="col-lg-7">
-                <h6 class="text-muted">Maior custo nos últimos 12 meses</h6>
-                <div class="table-responsive">
+                <h6 class="text-muted">Maior custo nos últimos 12 meses</h6>                <div class="table-responsive">
                     <table class="table table-sm table-hover mb-0">
                         <thead class="table-light">
                             <tr><th>Ativo</th><th class="text-end">Combustível</th><th class="text-end">Manutenção</th><th class="text-end">Total</th></tr>
@@ -93,10 +122,14 @@
                             <?php foreach (($frotaTop ?? []) as $f) { ?>
                                 <tr>
                                     <td>
+                                        <?php $comb = \App\Support\FleetAgenda::combustivelInfo($f['fuel_type'] ?? null, $f['category'] ?? 'vehicle'); ?>
+                                        <span class="badge" style="background:<?= e($comb['hex']) ?> !important">
+                                            <?= e($comb['label']) ?>
+                                        </span>
                                         <?php if (($f['category'] ?? 'vehicle') === 'equipment') { ?>
-                                            <span class="badge bg-info me-1"><?= e($f['equipment_type'] ?: 'Equip.') ?></span>
+                                            <span class="badge bg-info ms-1"><?= e($f['equipment_type'] ?: 'Equip.') ?></span>
                                         <?php } ?>
-                                        <?= e(asset_label($f)) ?>
+                                        <div class="mt-1"><?= e(asset_label($f)) ?></div>
                                     </td>
                                     <td class="text-end">R$ <?= e(number_format((float) $f['custo_combustivel'], 2, ',', '.')) ?></td>
                                     <td class="text-end">R$ <?= e(number_format((float) $f['custo_manutencao'], 2, ',', '.')) ?></td>
@@ -112,6 +145,27 @@
             </div>
 
             <div class="col-lg-5">
+                <h6 class="text-muted">Próximas manutenções</h6>
+                <div class="table-responsive mb-3">
+                    <table class="table table-sm mb-0">
+                        <thead class="table-light"><tr><th>Data</th><th>Compromisso</th><th>Ativo</th></tr></thead>
+                        <tbody>
+                            <?php foreach (($agendaProxima ?? []) as $ag) { ?>
+                                <tr>
+                                    <td><?= e(date('d/m', strtotime($ag['scheduled_date']))) ?></td>
+                                    <td><?= e($ag['title']) ?></td>
+                                    <td class="text-muted small">
+                                        <?= ($ag['plate'] ?? null) !== null || ($ag['model'] ?? null) !== null ? e(asset_label($ag)) : 'Frota' ?>
+                                    </td>
+                                </tr>
+                            <?php } ?>
+                            <?php if (empty($agendaProxima)) { ?>
+                                <tr><td colspan="3" class="text-center text-muted py-3">Nada programado.</td></tr>
+                            <?php } ?>
+                        </tbody>
+                    </table>
+                </div>
+
                 <h6 class="text-muted">Últimos lançamentos</h6>
                 <div class="table-responsive">
                     <table class="table table-sm mb-0">

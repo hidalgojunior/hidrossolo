@@ -1176,6 +1176,20 @@ body.dark-mode .modal-content { background: #131f36; }
 
 @media (max-width: 767.98px) {
     :root { --fs-3xl: 1.9rem; --fs-4xl: 2.15rem; }
+
+    /* Topbar do admin: evita estouro horizontal em telas estreitas */
+    .topbar { padding: .7rem .85rem; gap: .5rem; }
+    .topbar > div { min-width: 0; }
+    .topbar h1, .topbar h5 {
+        font-size: 1.05rem;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    .user-menu { gap: .35rem; flex-shrink: 0; }
+    .user-menu .user-name { display: none; }
+
     .hero { padding: calc(var(--header-height) + 3rem) 0 3.5rem; }
     .section { padding: 3rem 0; }
     .banner-card { padding: 1.8rem; }

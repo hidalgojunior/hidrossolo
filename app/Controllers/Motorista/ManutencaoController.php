@@ -6,9 +6,14 @@ namespace App\Controllers\Motorista;
 
 use App\Core\BaseController;
 use App\Core\Security;
+use App\Support\FleetAgenda;
+use App\Support\FleetCatalog;
 
 /**
  * Lançamento de manutenções pelo motorista.
+ *
+ * Aceita qualquer tipo de serviço — inclusive troca de pneus — com a lista de
+ * itens trocados e a definição da próxima revisão do ativo.
  */
 class ManutencaoController extends BaseController
 {
@@ -20,18 +25,41 @@ class ManutencaoController extends BaseController
         $userId = (int) ($_SESSION['user_id'] ?? 0);
 
         $registros = $db->fetchAll(
-            "SELECT m.*, v.plate, v.brand, v.model, v.category, v.equipment_type
+            "SELECT m.*, v.plate, v.brand, v.model, v.category, v.equipment_type,
+                    COALESCE(i.itens, 0) AS itens_qtd, COALESCE(i.total, 0) AS itens_total
              FROM vehicle_maintenance m
              JOIN vehicles v ON v.id = m.vehicle_id
+             LEFT JOIN (
+                 SELECT maintenance_id, COUNT(*) AS itens, SUM(quantity * unit_cost) AS total
+                 FROM vehicle_maintenance_items GROUP BY maintenance_id
+             ) i ON i.maintenance_id = m.id
              WHERE m.user_id = ?
              ORDER BY m.maintenance_date DESC, m.id DESC
              LIMIT 50",
             [$userId]
         );
 
+        $ids = array_map(static fn(array $r): int => (int) $r['id'], $registros);
+        $itensPorManutencao = [];
+
+        if ($ids !== []) {
+            $placeholders = implode(',', array_fill(0, count($ids), '?'));
+            $linhas = $db->fetchAll(
+                "SELECT maintenance_id, description, quantity, unit_cost
+                 FROM vehicle_maintenance_items
+                 WHERE maintenance_id IN ({$placeholders}) ORDER BY id",
+                $ids
+            );
+
+            foreach ($linhas as $l) {
+                $itensPorManutencao[(int) $l['maintenance_id']][] = $l;
+            }
+        }
+
         echo $this->view('motorista.manutencoes.index', [
             'title' => 'Minhas Manutenções',
             'registros' => $registros,
+            'itensPorManutencao' => $itensPorManutencao,
         ]);
     }
 
@@ -40,7 +68,8 @@ class ManutencaoController extends BaseController
         echo $this->view('motorista.manutencoes.form', [
             'title' => 'Nova Manutenção',
             'veiculos' => $this->assets(),
-            'tipos' => self::TYPES,
+            'servicos' => FleetCatalog::servicos(),
+            'sugestoes' => FleetCatalog::sugestoesItens(),
         ]);
     }
 
@@ -51,7 +80,9 @@ class ManutencaoController extends BaseController
 
         $vehicleId = (int) ($_POST['vehicle_id'] ?? 0);
         $type = (string) ($_POST['type'] ?? '');
+        $serviceCategory = (string) ($_POST['service_category'] ?? 'other');
         $date = trim((string) ($_POST['maintenance_date'] ?? ''));
+        $nextReview = trim((string) ($_POST['next_review_date'] ?? ''));
         $workshop = trim((string) ($_POST['workshop'] ?? ''));
         $km = $this->intOrNull($_POST['km_at_maintenance'] ?? null);
         $hours = $this->decimalOrNull($_POST['hours_at_maintenance'] ?? null);
@@ -66,6 +97,9 @@ class ManutencaoController extends BaseController
         }
         if (!in_array($type, self::TYPES, true)) {
             $errors[] = 'Selecione o tipo de manutenção.';
+        }
+        if (!array_key_exists($serviceCategory, FleetCatalog::servicos())) {
+            $serviceCategory = 'other';
         }
         if ($date === '' || !strtotime($date)) {
             $errors[] = 'Informe uma data válida.';
@@ -86,8 +120,10 @@ class ManutencaoController extends BaseController
         $id = $this->db()->insert('vehicle_maintenance', [
             'vehicle_id' => $vehicleId,
             'type' => $type,
+            'service_category' => $serviceCategory,
             'workshop' => $workshop !== '' ? mb_substr($workshop, 0, 255) : null,
             'maintenance_date' => date('Y-m-d', strtotime($date)),
+            'next_review_date' => ($nextReview !== '' && strtotime($nextReview)) ? date('Y-m-d', strtotime($nextReview)) : null,
             'km_at_maintenance' => $km,
             'cost' => $cost,
             'description' => $description,
@@ -96,10 +132,27 @@ class ManutencaoController extends BaseController
             'notes' => $notes !== '' ? $notes : null,
         ]);
 
+        $itens = $this->itens();
+
+        foreach ($itens as $item) {
+            $this->db()->insert('vehicle_maintenance_items', [
+                'maintenance_id' => $id,
+                'description' => $item['description'],
+                'quantity' => $item['quantity'],
+                'unit_cost' => $item['unit_cost'],
+            ]);
+        }
+
+        // Agenda automaticamente a próxima revisão (gera avisos de 30/15/7 dias)
+        if ($nextReview !== '' && strtotime($nextReview)) {
+            FleetAgenda::syncRevision($vehicleId, $nextReview, (int) ($_SESSION['user_id'] ?? 0), $km);
+        }
+
         Security::audit('maintenance_created', 'vehicle_maintenance', $id, [
             'vehicle_id' => $vehicleId,
-            'type' => $type,
+            'service_category' => $serviceCategory,
             'cost' => $cost,
+            'itens' => count($itens),
         ]);
 
         unset($_SESSION['old_input']);
@@ -109,10 +162,47 @@ class ManutencaoController extends BaseController
 
     /* ===================================================================== */
 
+    /**
+     * @return array<int,array{description:string,quantity:float,unit_cost:float}>
+     */
+    private function itens(): array
+    {
+        $linhas = $_POST['items'] ?? [];
+
+        if (!is_array($linhas)) {
+            return [];
+        }
+
+        $itens = [];
+
+        foreach ($linhas as $linha) {
+            if (!is_array($linha)) {
+                continue;
+            }
+
+            $descricao = trim((string) ($linha['description'] ?? ''));
+
+            if ($descricao === '') {
+                continue;
+            }
+
+            $quantidade = $this->decimal($linha['quantity'] ?? null) ?? 1;
+            $valorUnitario = $this->decimal($linha['unit_cost'] ?? null) ?? 0.0;
+
+            $itens[] = [
+                'description' => mb_substr($descricao, 0, 255),
+                'quantity' => $quantidade > 0 ? $quantidade : 1,
+                'unit_cost' => max(0, $valorUnitario),
+            ];
+        }
+
+        return $itens;
+    }
+
     private function assets(): array
     {
         return $this->db()->fetchAll(
-            "SELECT id, plate, brand, model, category, equipment_type, current_km, current_hours
+            "SELECT id, plate, brand, model, category, equipment_type, fuel_type, current_km, current_hours
              FROM vehicles
              WHERE status <> 'inactive'
              ORDER BY category, COALESCE(plate, equipment_type), brand, model"

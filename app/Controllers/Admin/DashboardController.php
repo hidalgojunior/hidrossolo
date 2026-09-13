@@ -64,7 +64,7 @@ class DashboardController extends BaseController
         )['c'] ?? 0);
 
         $frotaTop = $db->fetchAll(
-            "SELECT v.id, v.plate, v.brand, v.model, v.category, v.equipment_type,
+            "SELECT v.id, v.plate, v.brand, v.model, v.category, v.equipment_type, v.fuel_type,
                     COALESCE(fc.custo, 0) AS custo_combustivel,
                     COALESCE(mt.custo, 0) AS custo_manutencao,
                     (COALESCE(fc.custo, 0) + COALESCE(mt.custo, 0)) AS custo_total
@@ -79,6 +79,31 @@ class DashboardController extends BaseController
              ) mt ON mt.vehicle_id = v.id
              ORDER BY custo_total DESC
              LIMIT 5"
+        );
+
+        // Resumo por tipo de combustível (12 meses) — usado para colorir o painel
+        $frotaPorCombustivel = $db->fetchAll(
+            "SELECT v.fuel_type, v.category,
+                    COUNT(DISTINCT v.id) AS ativos,
+                    COALESCE(SUM(f.liters), 0) AS litros,
+                    COALESCE(SUM(f.cost), 0) AS custo,
+                    COALESCE(SUM(m.cost), 0) AS manutencao
+             FROM vehicles v
+             LEFT JOIN vehicle_fuel f
+                    ON f.vehicle_id = v.id AND f.fuel_date >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH)
+             LEFT JOIN vehicle_maintenance m
+                    ON m.vehicle_id = v.id AND m.maintenance_date >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH)
+             WHERE v.status <> 'inactive'
+             GROUP BY v.fuel_type, v.category
+             ORDER BY v.category, v.fuel_type"
+        );
+
+        $agendaProxima = $db->fetchAll(
+            "SELECT s.id, s.title, s.scheduled_date, s.type, v.plate, v.brand, v.model, v.category, v.equipment_type
+             FROM fleet_schedules s
+             LEFT JOIN vehicles v ON v.id = s.vehicle_id
+             WHERE s.status = 'planned' AND s.scheduled_date >= CURDATE()
+             ORDER BY s.scheduled_date ASC LIMIT 4"
         );
 
         $ultimosLancamentosFrota = $db->fetchAll(
@@ -108,6 +133,8 @@ class DashboardController extends BaseController
             'custoManutMes' => $custoManutMes,
             'litrosMes' => $litrosMes,
             'frotaTop' => $frotaTop,
+            'frotaPorCombustivel' => $frotaPorCombustivel,
+            'agendaProxima' => $agendaProxima,
             'ultimosLancamentosFrota' => $ultimosLancamentosFrota,
             'config' => $this->config('company'),
         ]);

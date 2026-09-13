@@ -7,6 +7,7 @@ unset($_SESSION['old_input']);
 $veiculos = $veiculos ?? [];
 $vehiclesList = array_values(array_filter($veiculos, static fn(array $v): bool => ($v['category'] ?? 'vehicle') === 'vehicle'));
 $equipmentList = array_values(array_filter($veiculos, static fn(array $v): bool => ($v['category'] ?? '') === 'equipment'));
+$extrasOld = is_array($old['extras'] ?? null) ? $old['extras'] : [];
 ?>
 
 <?php $view->section('content'); ?>
@@ -16,7 +17,7 @@ $equipmentList = array_values(array_filter($veiculos, static fn(array $v): bool 
     <h5 class="mb-0">Novo abastecimento</h5>
 </div>
 
-<form method="POST" action="/motorista/abastecimentos/novo" class="driver-form driver-card">
+<form method="POST" action="/motorista/abastecimentos/novo" class="driver-form driver-card" data-offline-queue>
     <?= csrf_field() ?>
 
     <div class="mb-3">
@@ -26,8 +27,7 @@ $equipmentList = array_values(array_filter($veiculos, static fn(array $v): bool 
             <?php if ($vehiclesList !== []) { ?>
                 <optgroup label="Veículos">
                     <?php foreach ($vehiclesList as $v) { ?>
-                        <option value="<?= e($v['id']) ?>"
-                                data-km="<?= e($v['current_km'] ?? '') ?>"
+                        <option value="<?= e($v['id']) ?>" data-km="<?= e($v['current_km'] ?? '') ?>"
                                 data-hours="<?= e($v['current_hours'] ?? '') ?>"
                                 <?= (string) ($old['vehicle_id'] ?? '') === (string) $v['id'] ? 'selected' : '' ?>>
                             <?= e(asset_label($v)) ?>
@@ -38,8 +38,7 @@ $equipmentList = array_values(array_filter($veiculos, static fn(array $v): bool 
             <?php if ($equipmentList !== []) { ?>
                 <optgroup label="Equipamentos / Geradores">
                     <?php foreach ($equipmentList as $v) { ?>
-                        <option value="<?= e($v['id']) ?>"
-                                data-km="<?= e($v['current_km'] ?? '') ?>"
+                        <option value="<?= e($v['id']) ?>" data-km="<?= e($v['current_km'] ?? '') ?>"
                                 data-hours="<?= e($v['current_hours'] ?? '') ?>"
                                 <?= (string) ($old['vehicle_id'] ?? '') === (string) $v['id'] ? 'selected' : '' ?>>
                             <?= e(asset_label($v)) ?>
@@ -48,9 +47,6 @@ $equipmentList = array_values(array_filter($veiculos, static fn(array $v): bool 
                 </optgroup>
             <?php } ?>
         </select>
-        <?php if ($veiculos === []) { ?>
-            <small class="text-danger d-block mt-1">Nenhum veículo/equipamento cadastrado. Avise o administrador.</small>
-        <?php } ?>
     </div>
 
     <div class="row g-3">
@@ -65,7 +61,7 @@ $equipmentList = array_values(array_filter($veiculos, static fn(array $v): bool 
                    placeholder="0,00" value="<?= e($old['liters'] ?? '') ?>">
         </div>
         <div class="col-6">
-            <label class="form-label" for="cost">Valor pago (R$) *</label>
+            <label class="form-label" for="cost">Valor do combustível (R$) *</label>
             <input type="text" inputmode="decimal" name="cost" id="cost" class="form-control" required
                    placeholder="0,00" value="<?= e($old['cost'] ?? '') ?>">
         </div>
@@ -86,6 +82,37 @@ $equipmentList = array_values(array_filter($veiculos, static fn(array $v): bool 
         </div>
     </div>
 
+    <!-- Despesas extras -->
+    <div class="driver-repeater mt-4">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <strong><i class="bi bi-receipt me-1"></i> Outras despesas deste abastecimento</strong>
+            <button type="button" class="btn btn-sm btn-outline-primary" data-add-row>
+                <i class="bi bi-plus-lg"></i> Adicionar
+            </button>
+        </div>
+        <p class="text-muted small mb-2">
+            Use para arla, aditivo, óleo, lavagem, pedágio ou qualquer outro gasto feito junto com o abastecimento.
+        </p>
+
+        <div data-rows>
+            <?php foreach ($extrasOld as $i => $extra) { ?>
+                <div class="driver-repeater-row" data-row>
+                    <input type="text" name="extras[<?= e($i) ?>][description]" class="form-control form-control-sm"
+                           maxlength="255" placeholder="Descrição (ex.: Arla 32)" value="<?= e($extra['description'] ?? '') ?>">
+                    <input type="text" inputmode="decimal" name="extras[<?= e($i) ?>][amount]"
+                           class="form-control form-control-sm money" placeholder="0,00" value="<?= e($extra['amount'] ?? '') ?>">
+                    <button type="button" class="btn btn-sm btn-outline-danger" data-remove-row aria-label="Remover">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
+            <?php } ?>
+        </div>
+
+        <div class="text-end small text-muted mt-1">
+            Total geral: <strong data-total-geral>—</strong>
+        </div>
+    </div>
+
     <div id="odometerHint" class="alert alert-info mt-3 mb-0" style="display:none"></div>
 
     <button type="submit" class="btn btn-primary driver-submit mt-3">
@@ -93,16 +120,77 @@ $equipmentList = array_values(array_filter($veiculos, static fn(array $v): bool 
     </button>
 </form>
 
+<template id="extraRowTemplate">
+    <div class="driver-repeater-row" data-row>
+        <input type="text" class="form-control form-control-sm" maxlength="255" placeholder="Descrição (ex.: Arla 32)" data-name="description">
+        <input type="text" inputmode="decimal" class="form-control form-control-sm money" placeholder="0,00" data-name="amount">
+        <button type="button" class="btn btn-sm btn-outline-danger" data-remove-row aria-label="Remover">
+            <i class="bi bi-x-lg"></i>
+        </button>
+    </div>
+</template>
+
 <?php $view->endSection(); ?>
 
 <?php $view->section('scripts'); ?>
 <script>
 (function () {
+    var form = document.querySelector('[data-offline-queue]');
     var select = document.getElementById('vehicle_id');
     var km = document.getElementById('km_at_refuel');
     var hours = document.getElementById('hours_at_refuel');
     var hint = document.getElementById('odometerHint');
 
+    // ---------- Despesas extras ----------
+    var rowsBox = form.querySelector('[data-rows]');
+    var template = document.getElementById('extraRowTemplate');
+    var prefix = 'extras';
+
+    function renumber() {
+        rowsBox.querySelectorAll('[data-row]').forEach(function (row, index) {
+            row.querySelectorAll('[data-name]').forEach(function (input) {
+                input.name = prefix + '[' + index + '][' + input.getAttribute('data-name') + ']';
+            });
+        });
+        updateTotal();
+    }
+
+    function addRow() {
+        var node = template.content.firstElementChild.cloneNode(true);
+        rowsBox.appendChild(node);
+        renumber();
+    }
+
+    form.querySelector('[data-add-row]').addEventListener('click', addRow);
+
+    rowsBox.addEventListener('click', function (event) {
+        var btn = event.target.closest('[data-remove-row]');
+        if (!btn) return;
+        btn.closest('[data-row]').remove();
+        renumber();
+    });
+
+    function parseMoney(value) {
+        if (!value) return 0;
+        return Number(String(value).replace(/\./g, '').replace(',', '.')) || 0;
+    }
+
+    function updateTotal() {
+        var total = parseMoney(document.getElementById('cost').value);
+        rowsBox.querySelectorAll('.money').forEach(function (input) {
+            total += parseMoney(input.value);
+        });
+        form.querySelector('[data-total-geral]').textContent =
+            'R$ ' + total.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+    }
+
+    document.getElementById('cost').addEventListener('input', updateTotal);
+    rowsBox.addEventListener('input', updateTotal);
+
+    if (!rowsBox.querySelector('[data-row]')) addRow();
+    renumber();
+
+    // ---------- Odômetro ----------
     function refresh(preserve) {
         var opt = select.options[select.selectedIndex];
         if (!opt || !opt.value) { hint.style.display = 'none'; return; }

@@ -1,0 +1,50 @@
+{
+    "name": "Hidrossolo — Área do Motorista",
+    "short_name": "Hidrossolo",
+    "description": "Registre abastecimentos e manutenções dos veículos e equipamentos, mesmo sem internet.",
+    "id": "/motorista",
+    "start_url": "/motorista?source=pwa",
+    "scope": "/motorista",
+    "display": "standalone",
+    "display_override": ["standalone", "minimal-ui"],
+    "orientation": "portrait",
+    "background_color": "#0b1220",
+    "theme_color": "#101a2e",
+    "lang": "pt-BR",
+    "dir": "ltr",
+    "categories": ["business", "productivity", "utilities"],
+    "icons": [
+        {
+            "src": "/assets/pwa/icon-192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "/assets/pwa/icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "/assets/pwa/icon-maskable-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "maskable"
+        }
+    ],
+    "shortcuts": [
+        {
+            "name": "Novo abastecimento",
+            "short_name": "Abastecer",
+            "url": "/motorista/abastecimentos/novo",
+            "icons": [{ "src": "/assets/pwa/icon-192.png", "sizes": "192x192" }]
+        },
+        {
+            "name": "Nova manutenção",
+            "short_name": "Manutenção",
+            "url": "/motorista/manutencoes/nova",
+            "icons": [{ "src": "/assets/pwa/icon-192.png", "sizes": "192x192" }]
+        }
+    ]
+}

@@ -8,7 +8,7 @@ use App\Core\BaseController;
 use App\Core\Security;
 
 /**
- * Lançamento de abastecimentos pelo motorista.
+ * Lançamento de abastecimentos pelo motorista (com despesas extras).
  */
 class AbastecimentoController extends BaseController
 {
@@ -18,18 +18,41 @@ class AbastecimentoController extends BaseController
         $userId = (int) ($_SESSION['user_id'] ?? 0);
 
         $registros = $db->fetchAll(
-            "SELECT f.*, v.plate, v.brand, v.model, v.category, v.equipment_type
+            "SELECT f.*, v.plate, v.brand, v.model, v.category, v.equipment_type, v.fuel_type,
+                    COALESCE(e.extras, 0) AS extras_total, COALESCE(e.qtd, 0) AS extras_qtd
              FROM vehicle_fuel f
              JOIN vehicles v ON v.id = f.vehicle_id
+             LEFT JOIN (
+                 SELECT fuel_id, SUM(amount) AS extras, COUNT(*) AS qtd
+                 FROM vehicle_fuel_extras GROUP BY fuel_id
+             ) e ON e.fuel_id = f.id
              WHERE f.user_id = ?
              ORDER BY f.fuel_date DESC, f.id DESC
              LIMIT 50",
             [$userId]
         );
 
+        // Detalhe das despesas extras
+        $ids = array_map(static fn(array $r): int => (int) $r['id'], $registros);
+        $extrasPorAbastecimento = [];
+
+        if ($ids !== []) {
+            $placeholders = implode(',', array_fill(0, count($ids), '?'));
+            $linhas = $db->fetchAll(
+                "SELECT fuel_id, description, amount FROM vehicle_fuel_extras
+                 WHERE fuel_id IN ({$placeholders}) ORDER BY id",
+                $ids
+            );
+
+            foreach ($linhas as $l) {
+                $extrasPorAbastecimento[(int) $l['fuel_id']][] = $l;
+            }
+        }
+
         echo $this->view('motorista.abastecimentos.index', [
             'title' => 'Meus Abastecimentos',
             'registros' => $registros,
+            'extrasPorAbastecimento' => $extrasPorAbastecimento,
         ]);
     }
 
@@ -86,26 +109,74 @@ class AbastecimentoController extends BaseController
             'notes' => $notes !== '' ? mb_substr($notes, 0, 500) : null,
         ]);
 
-        // Mantém a quilometragem/horímetro do ativo atualizado
+        $extras = $this->extras();
+
+        foreach ($extras as $extra) {
+            $this->db()->insert('vehicle_fuel_extras', [
+                'fuel_id' => $id,
+                'description' => $extra['description'],
+                'amount' => $extra['amount'],
+            ]);
+        }
+
         $this->syncAssetOdometers($vehicleId, $km, $hours);
 
         Security::audit('fuel_created', 'vehicle_fuel', $id, [
             'vehicle_id' => $vehicleId,
             'liters' => $liters,
             'cost' => $cost,
+            'extras' => count($extras),
         ]);
 
         unset($_SESSION['old_input']);
-        $_SESSION['flash_success'] = 'Abastecimento registrado com sucesso!';
+
+        $extraMsg = $extras !== [] ? ' (com ' . count($extras) . ' despesa(s) extra)' : '';
+        $_SESSION['flash_success'] = 'Abastecimento registrado com sucesso' . $extraMsg . '!';
         $this->redirect('/motorista/abastecimentos');
     }
 
     /* ===================================================================== */
 
+    /**
+     * Despesas extras informadas no formulário.
+     *
+     * @return array<int,array{description:string,amount:float}>
+     */
+    private function extras(): array
+    {
+        $linhas = $_POST['extras'] ?? [];
+
+        if (!is_array($linhas)) {
+            return [];
+        }
+
+        $extras = [];
+
+        foreach ($linhas as $linha) {
+            if (!is_array($linha)) {
+                continue;
+            }
+
+            $descricao = trim((string) ($linha['description'] ?? ''));
+            $valor = $this->decimal($linha['amount'] ?? null);
+
+            if ($descricao === '' || $valor === null || $valor <= 0) {
+                continue;
+            }
+
+            $extras[] = [
+                'description' => mb_substr($descricao, 0, 255),
+                'amount' => $valor,
+            ];
+        }
+
+        return $extras;
+    }
+
     private function assets(): array
     {
         return $this->db()->fetchAll(
-            "SELECT id, plate, brand, model, category, equipment_type, current_km, current_hours
+            "SELECT id, plate, brand, model, category, equipment_type, fuel_type, current_km, current_hours
              FROM vehicles
              WHERE status <> 'inactive'
              ORDER BY category, COALESCE(plate, equipment_type), brand, model"
