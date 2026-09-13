@@ -4,9 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= e($title ?? 'Admin') ?> - Hidrossolo</title>
+    <meta name="csrf-token" content="<?= e(csrf_token()) ?>">
 
     <!-- Design system próprio (sem frameworks) -->
     <link rel="stylesheet" href="/assets/css/app.css">
+    <link rel="stylesheet" href="/assets/css/media.css">
     <!-- Ícones (biblioteca de ícones, não é framework de UI) -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
 
@@ -289,7 +291,11 @@
         <?= $view->getSection('content') ?>
     </div>
 
+    <!-- Seletor de mídia (global) -->
+    <?= $view->partial('admin.components.media-picker') ?>
+
     <script src="/assets/js/ui.js"></script>
+    <script src="/assets/js/media-picker.js"></script>
     <!-- Summernote + jQuery (editor de conteúdo) -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/summernote@0.8.20/dist/summernote-lite.min.js"></script>

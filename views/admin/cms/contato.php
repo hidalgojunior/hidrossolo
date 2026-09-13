@@ -10,12 +10,12 @@
         <div class="card-body">
             <div class="row g-3">
                 <div class="col-md-8">
-                    <label class="form-label">URL do Logo</label>
-                    <input type="text" name="site_logo" class="form-control" value="<?= e($settings['site_logo'] ?? '/assets/images/hidrossolo.png') ?>">
-                    <small class="text-muted">Faça upload na <a href="/admin/midia">Biblioteca de Mídias</a> e cole a URL aqui</small>
-                </div>
-                <div class="col-md-4 d-flex align-items-end">
-                    <img src="<?= e($settings['site_logo'] ?? '/assets/images/hidrossolo.png') ?>" alt="Logo preview" style="max-height:60px">
+                    <?= $view->partial('admin.components.media-field', [
+                        'name' => 'site_logo',
+                        'label' => 'Logo do site',
+                        'value' => $settings['site_logo'] ?? '/assets/images/hidrossolo.png',
+                        'help' => 'Escolha um arquivo da biblioteca ou envie um novo.',
+                    ]) ?>
                 </div>
             </div>
         </div>

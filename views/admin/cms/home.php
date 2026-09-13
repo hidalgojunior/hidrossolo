@@ -71,8 +71,11 @@
                     <input type="text" name="section_diferenciais[<?= e($i) ?>][title]" class="form-control" value="<?= e($item['title']) ?>">
                 </div>
                 <div class="col-md-3">
-                    <label class="form-label">Ícone/Imagem URL</label>
-                    <input type="text" name="section_diferenciais[<?= e($i) ?>][image]" class="form-control" value="<?= e($item['image']) ?>">
+                    <?= $view->partial('admin.components.media-field', [
+                        'name' => "section_diferenciais[{$i}][image]",
+                        'label' => 'Ícone / Imagem',
+                        'value' => $item['image'],
+                    ]) ?>
                 </div>
                 <div class="col-md-6">
                     <label class="form-label">Descrição</label>
@@ -122,8 +125,11 @@
                     <input type="text" name="section_banners[<?= e($i) ?>][subtitle]" class="form-control" value="<?= e($item['subtitle']) ?>">
                 </div>
                 <div class="col-md-3">
-                    <label class="form-label">URL da Imagem</label>
-                    <input type="text" name="section_banners[<?= e($i) ?>][image]" class="form-control" value="<?= e($item['image']) ?>">
+                    <?= $view->partial('admin.components.media-field', [
+                        'name' => "section_banners[{$i}][image]",
+                        'label' => 'Imagem do Banner',
+                        'value' => $item['image'],
+                    ]) ?>
                 </div>
                 <div class="col-md-3">
                     <label class="form-label">Link</label>
@@ -172,6 +178,17 @@ function addItem(containerId, prefix, countRef, fields) {
         h += `<div class="${f.col}"><label class="form-label">${f.label}</label>`;
         if (f.type === 'textarea') {
             h += `<textarea name="section_${prefix}[${countRef}][${f.name}]" class="form-control" rows="2"></textarea>`;
+        } else if (f.type === 'media') {
+            h += '<div class="media-field" data-media-field data-media-type="image">'
+               + '<div class="media-field-body">'
+               + '<div class="media-field-preview" data-media-preview><i class="bi bi-image"></i></div>'
+               + '<div class="media-field-main">'
+               + `<input type="text" class="form-control form-control-sm" name="section_${prefix}[${countRef}][${f.name}]" data-media-input autocomplete="off">`
+               + '<div class="media-field-actions">'
+               + '<button type="button" class="btn btn-outline-primary btn-sm" data-media-open><i class="bi bi-images me-1"></i> Biblioteca</button>'
+               + '<button type="button" class="btn btn-outline-secondary btn-sm" data-media-upload><i class="bi bi-cloud-upload me-1"></i> Enviar</button>'
+               + '<button type="button" class="btn btn-outline-danger btn-sm" data-media-clear><i class="bi bi-x-lg"></i></button>'
+               + '</div></div></div></div>';
         } else {
             h += `<input type="text" name="section_${prefix}[${countRef}][${f.name}]" class="form-control">`;
         }
@@ -182,11 +199,13 @@ function addItem(containerId, prefix, countRef, fields) {
     t.innerHTML = h.trim();
     let container = document.getElementById(containerId);
     container.insertBefore(t.content.firstChild, container.lastElementChild);
+
+    if (window.MediaPicker) window.MediaPicker.initFields(container);
 }
 function addDifItem() {
     addItem('dif-container', 'diferenciais', difCount++, [
         {col:'col-md-3', label:'Título', name:'title', type:'text'},
-        {col:'col-md-3', label:'Ícone/URL', name:'image', type:'text'},
+        {col:'col-md-3', label:'Ícone/Imagem', name:'image', type:'media'},
         {col:'col-md-6', label:'Descrição', name:'content', type:'textarea'}
     ]);
 }
@@ -201,7 +220,7 @@ function addBannerItem() {
     addItem('banner-container', 'banners', bannerCount++, [
         {col:'col-md-3', label:'Título', name:'title', type:'text'},
         {col:'col-md-3', label:'Subtítulo', name:'subtitle', type:'text'},
-        {col:'col-md-3', label:'URL da Imagem', name:'image', type:'text'},
+        {col:'col-md-3', label:'Imagem', name:'image', type:'media'},
         {col:'col-md-3', label:'Link', name:'link_url', type:'text'}
     ]);
 }

@@ -21,8 +21,12 @@
             </div>
             <div class="row g-3">
                 <div class="col-md-6">
-                    <label class="form-label">Imagem de Destaque (URL)</label>
-                    <input type="text" name="featured_image" class="form-control" value="<?= e($page['featured_image'] ?? '/assets/images/empresa.jpg') ?>">
+                    <?= $view->partial('admin.components.media-field', [
+                        'name' => 'featured_image',
+                        'label' => 'Imagem de Destaque',
+                        'value' => $page['featured_image'] ?? '/assets/images/empresa.jpg',
+                        'help' => 'Imagem exibida na página Empresa.',
+                    ]) ?>
                 </div>
                 <div class="col-md-6">
                     <label class="form-label">Meta Title (SEO)</label>

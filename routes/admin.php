@@ -115,8 +115,10 @@ $router->group(['prefix' => 'admin', 'middleware' => [AuthMiddleware::class, Csr
 
     // Mídia
     $router->get('/midia', [MidiaController::class, 'index']);
+    $router->get('/midia/list', [MidiaController::class, 'list']);
     $router->post('/midia/upload', [MidiaController::class, 'upload']);
     $router->post('/midia/scan', [MidiaController::class, 'scan']);
+    $router->post('/midia/update/{id}', [MidiaController::class, 'update']);
     $router->post('/midia/delete/{id}', [MidiaController::class, 'delete']);
 
     // Menus

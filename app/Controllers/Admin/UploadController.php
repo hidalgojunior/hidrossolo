@@ -29,8 +29,8 @@ class UploadController extends BaseController
             $this->json(['error' => 'Arquivo muito grande (máximo 10MB).'], 400);
         }
 
-        // Criar diretório se não existir
-        $uploadDir = dirname(__DIR__, 3) . '/public/assets/uploads/editor/';
+        // Criar diretório se não existir (assets/uploads é servido pelo nginx)
+        $uploadDir = dirname(__DIR__, 3) . '/assets/uploads/editor/';
         if (!is_dir($uploadDir)) {
             mkdir($uploadDir, 0755, true);
         }
@@ -45,7 +45,6 @@ class UploadController extends BaseController
         $filename = uniqid('img_') . '.' . $ext;
         $filepath = $fullDir . '/' . $filename;
         $relativePath = '/assets/uploads/editor/' . $subDir . '/' . $filename;
-
         if (!move_uploaded_file($file['tmp_name'], $filepath)) {
             $this->json(['error' => 'Erro ao salvar arquivo.'], 500);
         }

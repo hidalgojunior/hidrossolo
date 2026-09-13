@@ -360,6 +360,57 @@ Consulta limitada
 
 ---
 
+# Biblioteca de Mídias
+
+Todos os arquivos enviados pelo painel ficam centralizados em `/admin/midia` e podem ser
+reutilizados em qualquer parte do site.
+
+## Fluxo
+
+1. Envie um ou vários arquivos em **Biblioteca de Mídias** (arrastar e soltar ou selecionar).
+2. Os arquivos são gravados em `assets/uploads/AAAA/MM/` e registrados na tabela `media_library`.
+3. Nos formulários, use o **campo de mídia** (botões *Biblioteca* / *Enviar*) para escolher a imagem.
+4. Também é possível copiar o caminho gerado (ex.: `/assets/uploads/2026/09/foto.jpg`) e usá-lo em qualquer campo.
+
+## Recursos
+
+- Upload múltiplo com arrastar e soltar e barra de progresso
+- Miniaturas WebP geradas automaticamente
+- Busca por nome/descrição e filtros por tipo e categoria
+- Edição de nome, texto alternativo (acessibilidade/SEO) e categoria
+- **Escanear servidor**: registra imagens já existentes no projeto
+- Exclusão segura: só remove arquivos de `assets/uploads`; imagens do tema são apenas desvinculadas
+
+## Reutilização no site
+
+O campo de mídia é um componente reutilizável:
+
+```php
+<?= $view->partial('admin.components.media-field', [
+    'name'  => 'featured_image',
+    'label' => 'Imagem de Destaque',
+    'value' => $servico['featured_image'] ?? '',
+]) ?>
+```
+
+O seletor (modal) é carregado globalmente pelo layout do admin, então funciona em
+qualquer formulário — inclusive em linhas criadas dinamicamente por JavaScript
+(basta chamar `MediaPicker.initFields(container)`).
+
+## Permissões
+
+O PHP roda como `www-data` (uid 82) no container Alpine. A pasta de uploads precisa
+ser gravável por ele — o `start.sh` já ajusta isso automaticamente:
+
+```bash
+mkdir -p assets/uploads
+chown -R 82:82 assets/uploads && chmod -R 775 assets/uploads
+```
+
+O nginx também define `client_max_body_size 64M` para acomodar arquivos de até 10MB.
+
+---
+
 # Segurança
 
 ## Autenticação

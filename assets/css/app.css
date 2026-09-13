@@ -88,7 +88,10 @@
 *::before,
 *::after { box-sizing: border-box; }
 
-html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+html { -webkit-text-size-adjust: 100%; }
+
+/* Rolagem suave apenas onde for explicitamente pedido (evita instabilidade em automação) */
+.smooth-scroll { scroll-behavior: smooth; }
 
 body {
     margin: 0;

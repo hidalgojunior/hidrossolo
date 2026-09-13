@@ -26,8 +26,12 @@
                     <textarea name="content" class="form-control editor" rows="10"><?= e($servico['content'] ?? '') ?></textarea>
                 </div>
                 <div class="col-md-6">
-                    <label class="form-label">Imagem de Destaque (URL)</label>
-                    <input type="text" name="featured_image" class="form-control" value="<?= e($servico['featured_image'] ?? '') ?>">
+                    <?= $view->partial('admin.components.media-field', [
+                        'name' => 'featured_image',
+                        'label' => 'Imagem de Destaque',
+                        'value' => $servico['featured_image'] ?? '',
+                        'help' => 'Escolha um arquivo da biblioteca ou envie um novo.',
+                    ]) ?>
                 </div>
                 <div class="col-md-6">
                     <label class="form-label">Meta Title (SEO)</label>

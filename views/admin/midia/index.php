@@ -1,108 +1,309 @@
 <?php $view->layout('layouts.admin'); ?>
 
 <?php $view->section('content'); ?>
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h4 class="mb-0">Biblioteca de Mídias</h4>
+<?php
+$qs = static function (array $overrides = []) use ($q, $type, $categoria): string {
+    $params = array_merge(
+        ['categoria' => $categoria, 'type' => $type, 'q' => $q],
+        $overrides
+    );
+    $params = array_filter($params, static fn($v) => $v !== '' && $v !== null);
+
+    return '?' . http_build_query($params);
+};
+$totalPages = (int) ceil($total / max(1, $perPage));
+?>
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
     <div>
-        <form method="POST" action="/admin/midia/scan" style="display:inline">
+        <h4 class="mb-0">Biblioteca de Mídias</h4>
+        <p class="text-muted small mb-0">
+            Tudo o que você envia fica guardado aqui e pode ser reutilizado em serviços, páginas, blog e no logo do site.
+        </p>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+        <span class="badge bg-secondary"><?= e($total) ?> arquivo(s)</span>
+        <form method="POST" action="/admin/midia/scan">
             <?= csrf_field() ?>
-            <button type="submit" class="btn btn-outline-primary btn-sm me-2" title="Escanear imagens existentes no servidor">
-                <i class="bi bi-search me-1"></i>Escanear Imagens
+            <button type="submit" class="btn btn-outline-primary btn-sm" title="Procurar imagens já existentes no servidor">
+                <i class="bi bi-search me-1"></i>Escanear servidor
             </button>
         </form>
-        <small class="text-muted"><?= e($total) ?> arquivo(s)</small>
     </div>
 </div>
 
 <!-- Upload -->
-<div class="card mb-4">
-    <div class="card-body">
-        <form action="/admin/midia/upload" method="POST" enctype="multipart/form-data" class="row g-3 align-items-end">
-            <div class="col-md-5">
-                <label class="form-label">Selecionar Arquivo</label>
-                <input type="file" name="file" class="form-control" required accept="image/*,.pdf,.doc,.docx,.xls,.xlsx">
+<div class="media-upload-card mb-4">
+    <form action="/admin/midia/upload" method="POST" enctype="multipart/form-data" id="mediaUploadForm">
+        <?= csrf_field() ?>
+        <div class="row g-3 align-items-end">
+            <div class="col-lg-7">
+                <label class="form-label mb-1">Enviar arquivos para a biblioteca</label>
+                <div class="media-dropzone" data-media-dropzone id="pageDropzone">
+                    <i class="bi bi-cloud-arrow-up"></i>
+                    <span>Arraste os arquivos aqui ou <strong>clique para escolher</strong></span>
+                    <small>JPG, PNG, GIF, WebP, SVG, PDF, DOC, XLS — até 10MB cada (vários ao mesmo tempo)</small>
+                </div>
+                <input type="file" name="files[]" multiple hidden id="pageFileInput"
+                       accept="image/*,.pdf,.doc,.docx,.xls,.xlsx">
             </div>
-            <div class="col-md-4">
-                <label class="form-label">Categoria</label>
-                <input type="text" name="category" class="form-control" placeholder="Ex: banners, servicos, blog" value="general">
+            <div class="col-lg-5">
+                <label class="form-label" for="uploadCategory">Categoria</label>
+                <select name="category" id="uploadCategory" class="form-select mb-3">
+                    <?php foreach ($catLabels as $slug => $label) { ?>
+                        <option value="<?= e($slug) ?>" <?= e($slug === 'general' ? 'selected' : '') ?>><?= e($label) ?></option>
+                    <?php } ?>
+                </select>
+
+                <div class="alert alert-info mb-0 small">
+                    <i class="bi bi-info-circle me-1"></i>
+                    Depois de enviar, use o botão <strong>Copiar</strong> ou escolha a imagem
+                    diretamente no campo de mídia dos formulários.
+                </div>
             </div>
-            <div class="col-md-3">
-                <button type="submit" class="btn btn-primary w-100"><i class="bi bi-cloud-upload me-2"></i>Enviar</button>
-            </div>
-        </form>
-    </div>
+        </div>
+    </form>
 </div>
 
-<!-- Filtro categorias -->
-<div class="mb-3">
-    <a href="?categoria=all" class="btn btn-sm <?= e($categoria == 'all' ? 'btn-primary' : 'btn-outline-secondary') ?> me-1">Todas</a>
+<!-- Filtros -->
+<form method="GET" action="/admin/midia" class="media-filters">
+    <input type="hidden" name="categoria" value="<?= e($categoria) ?>">
+    <input type="hidden" name="type" value="<?= e($type) ?>">
+
+    <div class="media-toolbar-search" style="max-width:280px">
+        <i class="bi bi-search"></i>
+        <input type="search" name="q" class="form-control form-control-sm" placeholder="Buscar por nome..." value="<?= e($q) ?>">
+    </div>
+
+    <div class="btn-group btn-group-sm" role="group" aria-label="Tipo">
+        <a href="<?= e($qs(['type' => 'all', 'page' => null])) ?>" class="btn btn-sm <?= $type === 'all' ? 'btn-primary' : 'btn-outline-secondary' ?>">Todos</a>
+        <a href="<?= e($qs(['type' => 'image', 'page' => null])) ?>" class="btn btn-sm <?= $type === 'image' ? 'btn-primary' : 'btn-outline-secondary' ?>">Imagens</a>
+        <a href="<?= e($qs(['type' => 'document', 'page' => null])) ?>" class="btn btn-sm <?= $type === 'document' ? 'btn-primary' : 'btn-outline-secondary' ?>">Documentos</a>
+    </div>
+</form>
+
+<div class="media-filters">
+    <a href="<?= e($qs(['categoria' => 'all', 'page' => null])) ?>" class="media-chip <?= $categoria === 'all' ? 'is-active' : '' ?>">
+        Todas
+    </a>
     <?php foreach ($categorias as $cat) { ?>
-        <a href="?categoria=<?= e($cat['category']) ?>" class="btn btn-sm <?= e($categoria == $cat['category'] ? 'btn-primary' : 'btn-outline-secondary') ?> me-1">
-            <?= e($cat['category']) ?>
+        <a href="<?= e($qs(['categoria' => $cat['name'], 'page' => null])) ?>"
+           class="media-chip <?= $categoria === $cat['name'] ? 'is-active' : '' ?>">
+            <?= e($catLabels[$cat['name']] ?? ucfirst($cat['name'])) ?>
+            <span class="count"><?= e($cat['count']) ?></span>
         </a>
     <?php } ?>
 </div>
 
-<!-- Grid de mídias -->
-<div class="row g-3">
-    <?php if (empty($midias)) { ?>
-        <div class="col-12 text-center py-5 text-muted">Nenhuma mídia encontrada.</div>
-    <?php } else { ?>
+<!-- Grade -->
+<?php if (empty($midias)) { ?>
+    <div class="card">
+        <div class="card-body text-center py-5 text-muted">
+            <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+            Nenhuma mídia encontrada<?= $q !== '' ? ' para "' . e($q) . '"' : '' ?>.
+            <div class="small mt-1">Envie arquivos acima ou use “Escanear servidor”.</div>
+        </div>
+    </div>
+<?php } else { ?>
+    <div class="media-page-grid">
         <?php foreach ($midias as $m) { ?>
-        <div class="col-md-3 col-lg-2">
-            <div class="card h-100">
-                <?php if (str_starts_with($m['mime_type'], 'image/')) { ?>
-                    <img src="<?= e($m['thumbnail_path'] ?? $m['file_path']) ?>" class="card-img-top" style="height:120px;object-fit:cover" alt="<?= e($m['original_name']) ?>">
+        <div class="media-card">
+            <div class="media-card-thumb">
+                <?php if ($m['is_image']) { ?>
+                    <img src="<?= e($m['thumb']) ?>" alt="<?= e($m['alt_text'] ?: $m['name']) ?>" loading="lazy">
                 <?php } else { ?>
-                    <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height:120px">
-                        <i class="bi bi-file-earmark fs-1 text-muted"></i>
-                    </div>
+                    <i class="bi <?= e($m['icon']) ?>"></i>
                 <?php } ?>
-                <div class="card-body p-2">
-                    <small class="text-truncate d-block" title="<?= e($m['original_name']) ?>"><?= e($m['original_name']) ?></small>
-                    <small class="text-muted"><?= e(number_format($m['file_size'] / 1024, 1)) ?> KB</small>
-                    <div class="input-group input-group-sm mt-1">
-                        <input type="text" class="form-control form-control-sm font-monospace" value="<?= e($m['file_path']) ?>" readonly style="font-size:0.65rem" id="url-<?= e($m['id']) ?>">
-                        <button class="btn btn-outline-secondary btn-sm" onclick="copyUrl(<?= e($m['id']) ?>)" title="Copiar URL">
-                            <i class="bi bi-clipboard"></i>
-                        </button>
-                    </div>
-                    <form method="POST" action="/admin/midia/delete/<?= e($m['id']) ?>" class="mt-1" onsubmit="return confirm('Excluir esta mídia permanentemente?')">
-                        <?= csrf_field() ?>
-                        <button class="btn btn-outline-danger btn-sm w-100" title="Excluir"><i class="bi bi-trash me-1"></i>Excluir</button>
-                    </form>
-                </div>
+                <span class="media-card-badge"><?= e($catLabels[$m['category']] ?? $m['category']) ?></span>
+            </div>
+
+            <div class="media-card-info">
+                <span class="media-card-name" title="<?= e($m['name']) ?>"><?= e($m['name']) ?></span>
+                <span class="media-card-meta">
+                    <span><?= e($m['size_human']) ?></span>
+                    <span><?= e(date('d/m/Y', strtotime($m['created_at'] ?: 'now'))) ?></span>
+                </span>
+            </div>
+
+            <div class="media-card-actions">
+                <button type="button" class="btn btn-outline-secondary"
+                        onclick="mediaCopy('<?= e($m['url']) ?>', this)" title="Copiar caminho">
+                    <i class="bi bi-clipboard"></i>
+                </button>
+                <button type="button" class="btn btn-outline-primary"
+                        data-media-edit
+                        data-id="<?= e($m['id']) ?>"
+                        data-name="<?= e($m['name']) ?>"
+                        data-alt="<?= e($m['alt_text']) ?>"
+                        data-category="<?= e($m['category']) ?>"
+                        data-url="<?= e($m['url']) ?>"
+                        data-thumb="<?= e($m['thumb']) ?>"
+                        data-image="<?= e($m['is_image'] ? '1' : '0') ?>"
+                        title="Editar">
+                    <i class="bi bi-pencil"></i>
+                </button>
+                <form method="POST" action="/admin/midia/delete/<?= e($m['id']) ?>" class="flex-grow-1"
+                      onsubmit="return confirm('Excluir este arquivo permanentemente?');">
+                    <?= csrf_field() ?>
+                    <button class="btn btn-outline-danger w-100" title="Excluir">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </form>
             </div>
         </div>
         <?php } ?>
-    <?php } ?>
-</div>
+    </div>
 
-<?php if ($total > $perPage) { ?>
-<nav class="mt-4 d-flex justify-content-center">
-    <?php $totalPages = ceil($total / $perPage) ?>
-    <ul class="pagination">
-        <?php for ($i = 1; $i <= $totalPages; $i++) { ?>
-            <li class="page-item <?= e($i == $pagina ? 'active' : '') ?>">
-                <a class="page-link" href="?categoria=<?= e($categoria) ?>&page=<?= e($i) ?>"><?= e($i) ?></a>
-            </li>
-        <?php } ?>
-    </ul>
-</nav>
+    <?php if ($totalPages > 1) { ?>
+    <nav class="mt-4 d-flex justify-content-center">
+        <ul class="pagination">
+            <?php for ($i = 1; $i <= $totalPages; $i++) { ?>
+                <li class="page-item <?= e($i === $pagina ? 'active' : '') ?>">
+                    <a class="page-link" href="<?= e($qs(['page' => $i])) ?>"><?= e($i) ?></a>
+                </li>
+            <?php } ?>
+        </ul>
+    </nav>
+    <?php } ?>
 <?php } ?>
+
+<!-- Modal de edição -->
+<div class="modal" id="mediaEditModal" aria-hidden="true">
+    <div class="modal-dialog">
+        <form method="POST" action="" id="mediaEditForm" class="modal-content">
+            <?= csrf_field() ?>
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-pencil-square me-2"></i>Editar mídia</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center mb-3">
+                    <img src="" alt="" id="mediaEditPreview" class="rounded-3" style="max-height:150px;display:none">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Nome de exibição</label>
+                    <input type="text" name="original_name" id="mediaEditName" class="form-control">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Texto alternativo (acessibilidade/SEO)</label>
+                    <input type="text" name="alt_text" id="mediaEditAlt" class="form-control"
+                           placeholder="Ex: Equipe perfurando poço artesiano">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Categoria</label>
+                    <select name="category" id="mediaEditCategory" class="form-select">
+                        <?php foreach ($catLabels as $slug => $label) { ?>
+                            <option value="<?= e($slug) ?>"><?= e($label) ?></option>
+                        <?php } ?>
+                    </select>
+                </div>
+
+                <div class="mb-0">
+                    <label class="form-label">Caminho para usar no site</label>
+                    <div class="input-group input-group-sm">
+                        <input type="text" id="mediaEditUrl" class="form-control font-monospace" readonly>
+                        <button type="button" class="btn btn-outline-secondary" onclick="mediaCopy(document.getElementById('mediaEditUrl').value, this)">
+                            <i class="bi bi-clipboard"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light btn-sm" data-bs-dismiss="modal">Cancelar</button>
+                <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-check-lg me-1"></i>Salvar</button>
+            </div>
+        </form>
+    </div>
+</div>
 <?php $view->endSection(); ?>
 
 <?php $view->section('scripts'); ?>
 <script>
-function copyUrl(id) {
-    const input = document.getElementById('url-' + id);
-    input.select();
-    navigator.clipboard.writeText(input.value);
-    // Feedback visual
-    const btn = input.nextElementSibling;
-    const icon = btn.querySelector('i');
-    icon.className = 'bi bi-check-lg text-success';
-    setTimeout(() => icon.className = 'bi bi-clipboard', 1500);
+// Dropzone da página
+(function () {
+    var dropzone = document.getElementById('pageDropzone');
+    var input = document.getElementById('pageFileInput');
+    var form = document.getElementById('mediaUploadForm');
+
+    if (dropzone && input && form) {
+        dropzone.addEventListener('click', function () { input.click(); });
+
+        ['dragenter', 'dragover'].forEach(function (evt) {
+            dropzone.addEventListener(evt, function (e) {
+                e.preventDefault();
+                dropzone.classList.add('is-dragover');
+            });
+        });
+
+        ['dragleave', 'drop'].forEach(function (evt) {
+            dropzone.addEventListener(evt, function (e) {
+                e.preventDefault();
+                dropzone.classList.remove('is-dragover');
+            });
+        });
+
+        dropzone.addEventListener('drop', function (e) {
+            if (e.dataTransfer && e.dataTransfer.files.length) {
+                input.files = e.dataTransfer.files;
+                form.submit();
+            }
+        });
+
+        input.addEventListener('change', function () {
+            if (input.files.length) form.submit();
+        });
+    }
+})();
+
+// Copiar caminho
+function mediaCopy(text, btn) {
+    var done = function () {
+        if (!btn) return;
+        var icon = btn.querySelector('i');
+        if (!icon) return;
+        var original = icon.className;
+        icon.className = 'bi bi-check-lg text-success';
+        window.setTimeout(function () { icon.className = original; }, 1500);
+    };
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(done).catch(done);
+    } else {
+        var tmp = document.createElement('textarea');
+        tmp.value = text;
+        document.body.appendChild(tmp);
+        tmp.select();
+        document.execCommand('copy');
+        tmp.remove();
+        done();
+    }
 }
+
+// Modal de edição
+document.querySelectorAll('[data-media-edit]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+        var form = document.getElementById('mediaEditForm');
+        form.setAttribute('action', '/admin/midia/update/' + btn.dataset.id);
+
+        document.getElementById('mediaEditName').value = btn.dataset.name || '';
+        document.getElementById('mediaEditAlt').value = btn.dataset.alt || '';
+        document.getElementById('mediaEditCategory').value = btn.dataset.category || 'general';
+        document.getElementById('mediaEditUrl').value = btn.dataset.url || '';
+
+        var preview = document.getElementById('mediaEditPreview');
+        if (btn.dataset.image === '1') {
+            preview.src = btn.dataset.thumb;
+            preview.style.display = 'inline-block';
+        } else {
+            preview.style.display = 'none';
+        }
+
+        document.getElementById('mediaEditModal').classList.add('show');
+        document.body.style.overflow = 'hidden';
+    });
+});
 </script>
 <?php $view->endSection(); ?>

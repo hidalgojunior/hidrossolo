@@ -4,6 +4,12 @@
 echo "🚀 Iniciando ambiente Hidrossolo..."
 cd "$(dirname "$0")/docker"
 
+# Permissões de escrita para o PHP (www-data = uid 82 na imagem Alpine)
+# Necessário para a Biblioteca de Mídias gravar em assets/uploads
+mkdir -p ../assets/uploads
+chown -R 82:82 ../assets/uploads 2>/dev/null || true
+chmod -R 775 ../assets/uploads 2>/dev/null || true
+
 # Subir containers
 docker compose up -d --build
 
