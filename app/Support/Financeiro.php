@@ -261,6 +261,60 @@ final class Financeiro
         return $timestamp !== false ? date('Y-m-d', $timestamp) : null;
     }
 
+    /**
+     * Vencimento da parcela número `$numero` (1 = o próprio vencimento inicial).
+     *
+     * Mantém o dia do mês original e ajusta para o último dia quando o mês de
+     * destino for mais curto (ex.: 31/01 + 1 mês => 28/02, e não 03/03).
+     */
+    public static function vencimentoParcela(string $inicio, string $recorrencia, int $numero): string
+    {
+        $timestamp = strtotime($inicio);
+
+        if ($timestamp === false) {
+            return date('Y-m-d');
+        }
+
+        $inicial = date('Y-m-d', $timestamp);
+
+        if ($numero <= 1 || $recorrencia === 'none' || !array_key_exists($recorrencia, self::RECORRENCIAS)) {
+            return $inicial;
+        }
+
+        $data = new \DateTimeImmutable($inicial);
+        $dia = (int) $data->format('j');
+
+        for ($i = 1; $i < $numero; $i++) {
+            if ($recorrencia === 'weekly') {
+                $data = $data->modify('+7 days');
+                continue;
+            }
+
+            $passo = match ($recorrencia) {
+                'monthly' => 1,
+                'quarterly' => 3,
+                'yearly' => 12,
+                default => 1,
+            };
+
+            $data = $data->modify('first day of this month')->modify('+' . $passo . ' months');
+            $ultimoDia = (int) $data->format('t');
+
+            $data = $data->setDate(
+                (int) $data->format('Y'),
+                (int) $data->format('n'),
+                min($dia, $ultimoDia)
+            );
+        }
+
+        return $data->format('Y-m-d');
+    }
+
+    /**
+     * Limite de parcelas aceito em um único lançamento.
+     */
+    public const MAX_PARCELAS = 120;
+
     public static function nomeMes(int $mes): string
     {
         $meses = [

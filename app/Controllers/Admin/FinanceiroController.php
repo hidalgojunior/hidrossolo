@@ -74,6 +74,14 @@ class FinanceiroController extends BaseController
             $this->redirect('/admin/financeiro/novo');
         }
 
+        $totalParcelas = $this->parcelas((string) $dados['recurrence']);
+        $descricaoBase = (string) $dados['description'];
+
+        // Com mais de uma parcela, a descrição recebe o marcador (1/10), (2/10)...
+        if ($totalParcelas > 1) {
+            $dados['description'] = $this->comParcela($descricaoBase, 1, $totalParcelas);
+        }
+
         $id = $this->db()->insert('financial_entries', $dados + [
             'status' => 'pending',
             'created_by' => (int) ($_SESSION['user_id'] ?? 0),
@@ -83,14 +91,20 @@ class FinanceiroController extends BaseController
             'kind' => $dados['kind'],
             'amount' => $dados['amount'],
             'due_date' => $dados['due_date'],
+            'parcelas' => $totalParcelas,
         ]);
 
-        if (!empty($_POST['criar_proximo']) && $dados['recurrence'] !== 'none') {
+        if ($totalParcelas > 1) {
+            $this->gerarParcelas($dados, $descricaoBase, $totalParcelas);
+        } elseif (!empty($_POST['criar_proximo']) && $dados['recurrence'] !== 'none') {
             $this->criarProximo((int) $id, $dados);
         }
 
         unset($_SESSION['old_input']);
-        $_SESSION['flash_success'] = 'Lançamento registrado no fluxo de caixa!';
+        $_SESSION['flash_success'] = $totalParcelas > 1
+            ? $totalParcelas . ' parcelas criadas no fluxo de caixa!'
+            : 'Lançamento registrado no fluxo de caixa!';
+
         $this->redirect('/admin/financeiro?mes=' . substr((string) $dados['due_date'], 0, 7));
     }
 
@@ -155,8 +169,16 @@ class FinanceiroController extends BaseController
 
         Security::audit('finance_' . $acao, 'financial_entries', (int) $id, ['status' => $dados['status']]);
 
-        // Ao concretizar uma despesa vinculada, replica para o próximo ciclo
-        if ($acao === 'baixar' && !empty($_POST['gerar_proximo']) && $lancamento['recurrence'] !== 'none') {
+        // Ao concretizar um lançamento recorrente, replica para o próximo ciclo.
+        // Lançamentos que fazem parte de um carnê (descrição "(3/10)") já nascem
+        // todos criados — gerar outro aqui criaria uma parcela duplicada.
+        $ehParcela = (bool) preg_match('/\(\d+\/\d+\)$/', (string) $lancamento['description']);
+
+        if ($acao === 'baixar'
+            && !empty($_POST['gerar_proximo'])
+            && $lancamento['recurrence'] !== 'none'
+            && !$ehParcela
+        ) {
             $this->criarProximo((int) $id, $lancamento);
         }
 
@@ -458,6 +480,56 @@ class FinanceiroController extends BaseController
             'notes' => trim((string) ($_POST['notes'] ?? '')) ?: null,
             'status' => !empty($_POST['paid_at']) && strtotime((string) $_POST['paid_at']) ? 'paid' : 'pending',
         ];
+    }
+
+    /**
+     * Quantidade de parcelas informada no formulário (1 a MAX_PARCELAS).
+     */
+    private function parcelas(string $recorrencia): int
+    {
+        if ($recorrencia === 'none' || !array_key_exists($recorrencia, Financeiro::RECORRENCIAS)) {
+            return 1;
+        }
+
+        $total = (int) ($_POST['installments'] ?? 1);
+
+        return max(1, min(Financeiro::MAX_PARCELAS, $total));
+    }
+
+    /**
+     * Acrescenta o marcador "(3/10)" à descrição, respeitando o limite da coluna.
+     */
+    private function comParcela(string $descricao, int $numero, int $total): string
+    {
+        $marcador = ' (' . $numero . '/' . $total . ')';
+
+        return mb_substr($descricao, 0, 255 - mb_strlen($marcador)) . $marcador;
+    }
+
+    /**
+     * Cria as parcelas 2..N do lançamento, uma para cada vencimento.
+     *
+     * @param array<string,mixed> $dados
+     */
+    private function gerarParcelas(array $dados, string $descricaoBase, int $total): void
+    {
+        for ($numero = 2; $numero <= $total; $numero++) {
+            $this->db()->insert('financial_entries', [
+                'kind' => $dados['kind'],
+                'category' => $dados['category'],
+                'description' => $this->comParcela($descricaoBase, $numero, $total),
+                'amount' => $dados['amount'],
+                'due_date' => Financeiro::vencimentoParcela((string) $dados['due_date'], (string) $dados['recurrence'], $numero),
+                'status' => 'pending',
+                'payment_method' => $dados['payment_method'] ?? null,
+                'party' => $dados['party'] ?? null,
+                'document' => $dados['document'] ?? null,
+                'vehicle_id' => $dados['vehicle_id'] ?? null,
+                'recurrence' => $dados['recurrence'],
+                'notes' => $dados['notes'] ?? null,
+                'created_by' => (int) ($_SESSION['user_id'] ?? 0),
+            ]);
+        }
     }
 
     /**

@@ -123,13 +123,23 @@ $categoriaAtual = (string) ($lancamento['category'] ?? '');
 
                 <div class="col-md-4">
                     <label class="form-label">Repetição</label>
-                    <select name="recurrence" class="form-select">
+                    <select name="recurrence" id="finRecorrencia" class="form-select">
                         <?php foreach ($recorrencias as $chave => $rotulo) { ?>
                             <option value="<?= e($chave) ?>" <?= e(($lancamento['recurrence'] ?? 'none') === $chave ? 'selected' : '') ?>>
                                 <?= e($rotulo) ?>
                             </option>
                         <?php } ?>
                     </select>
+                </div>
+
+                <div class="col-md-4 <?= e(($lancamento['recurrence'] ?? 'none') === 'none' ? 'd-none' : '') ?>" id="finRepeticoesGrupo">
+                    <label class="form-label" for="finRepeticoes">Quantas vezes repete?</label>
+                    <input type="number" name="installments" id="finRepeticoes" class="form-control"
+                           min="1" max="120" step="1" value="1"
+                           <?= $lancamento ? 'disabled' : '' ?>>
+                    <div class="form-text" id="finRepeticoesDica">
+                        Informe o total de vezes que este lançamento acontece (a primeira já está inclusa).
+                    </div>
                 </div>
 
                 <div class="col-md-4">
@@ -149,17 +159,6 @@ $categoriaAtual = (string) ($lancamento['category'] ?? '');
                     <label class="form-label">Observações</label>
                     <textarea name="notes" class="form-control" rows="2"><?= e($lancamento['notes'] ?? '') ?></textarea>
                 </div>
-
-                <?php if (!$lancamento) { ?>
-                    <div class="col-12">
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" name="criar_proximo" value="1" id="criarProximo">
-                            <label class="form-check-label" for="criarProximo">
-                                Já criar também o próximo lançamento desta repetição
-                            </label>
-                        </div>
-                    </div>
-                <?php } ?>
             </div>
         </div>
     </div>
@@ -188,6 +187,99 @@ $categoriaAtual = (string) ($lancamento['category'] ?? '');
     document.querySelectorAll('input[name="kind"]').forEach(function (radio) {
         radio.addEventListener('change', atualizar);
     });
+
+    atualizar();
+})();
+
+// Repetições: quantidade de lançamentos e pré-visualização das datas
+(function () {
+    var select = document.getElementById('finRecorrencia');
+    var grupo = document.getElementById('finRepeticoesGrupo');
+    var campo = document.getElementById('finRepeticoes');
+    var dica = document.getElementById('finRepeticoesDica');
+    var vencimento = document.querySelector('input[name="due_date"]');
+
+    if (!select || !grupo || !campo || !dica) {
+        return;
+    }
+
+    var unidades = { weekly: 'semana', monthly: 'mês', quarterly: 'trimestre', yearly: 'ano' };
+    var maximo = 120;
+
+    function paraData(iso) {
+        var partes = String(iso).split('-');
+
+        return new Date(Number(partes[0]), Number(partes[1]) - 1, Number(partes[2]));
+    }
+
+    function somar(iso, recorrencia, vezes) {
+        var data = paraData(iso);
+        var dia = data.getDate();
+
+        for (var i = 0; i < vezes; i++) {
+            if (recorrencia === 'weekly') {
+                data.setDate(data.getDate() + 7);
+                continue;
+            }
+
+            var passo = recorrencia === 'quarterly' ? 3 : (recorrencia === 'yearly' ? 12 : 1);
+            data.setDate(1);
+            data.setMonth(data.getMonth() + passo);
+
+            var ultimoDia = new Date(data.getFullYear(), data.getMonth() + 1, 0).getDate();
+            data.setDate(Math.min(dia, ultimoDia));
+        }
+
+        return data;
+    }
+
+    function br(data) {
+        return String(data.getDate()).padStart(2, '0') + '/'
+            + String(data.getMonth() + 1).padStart(2, '0') + '/'
+            + data.getFullYear();
+    }
+
+    function atualizar() {
+        var recorrencia = select.value;
+        var repetindo = recorrencia !== 'none';
+
+        grupo.classList.toggle('d-none', !repetindo);
+
+        if (!repetindo) {
+            campo.value = 1;
+            dica.textContent = 'Informe o total de vezes que este lançamento acontece (a primeira já está inclusa).';
+            return;
+        }
+
+        var total = parseInt(campo.value, 10) || 1;
+        total = Math.max(1, Math.min(maximo, total));
+
+        var base = vencimento && vencimento.value ? vencimento.value : '';
+
+        if (!base) {
+            dica.innerHTML = 'Informe o vencimento para ver as datas geradas.';
+            return;
+        }
+
+        if (total === 1) {
+            dica.innerHTML = 'Será criado <strong>1 lançamento</strong> apenas. Informe 2 ou mais para gerar as próximas repetições.';
+            return;
+        }
+
+        var primeira = paraData(base);
+        var ultima = somar(base, recorrencia, total - 1);
+
+        dica.innerHTML = 'Serão criados <strong>' + total + ' lançamentos</strong>, um a cada '
+            + (unidades[recorrencia] || 'período') + ' — de <strong>' + br(primeira) + '</strong> até <strong>'
+            + br(ultima) + '</strong>.';
+    }
+
+    select.addEventListener('change', atualizar);
+    campo.addEventListener('input', atualizar);
+
+    if (vencimento) {
+        vencimento.addEventListener('change', atualizar);
+    }
 
     atualizar();
 })();

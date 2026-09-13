@@ -199,6 +199,7 @@ $situacaoBadge = static function (array $l): array {
                                                         data-descricao="<?= e($l['description']) ?>"
                                                         data-kind="<?= e($l['kind']) ?>"
                                                         data-recorrencia="<?= e($l['recurrence']) ?>"
+                                                        data-parcela="<?= preg_match('/\(\d+\/\d+\)$/', (string) $l['description']) ? '1' : '0' ?>"
                                                         title="<?= $l['kind'] === 'income' ? 'Registrar recebimento' : 'Registrar pagamento' ?>">
                                                     <i class="bi bi-check2-circle"></i>
                                                 </button>
@@ -337,7 +338,16 @@ $situacaoBadge = static function (array $l): array {
             form.action = '/admin/financeiro/status/' + botao.dataset.baixar;
             document.getElementById('baixaDescricao').textContent =
                 (botao.dataset.kind === 'income' ? 'Registrar recebimento de: ' : 'Registrar pagamento de: ') + botao.dataset.descricao;
-            document.getElementById('baixaRecorrencia').classList.toggle('d-none', botao.dataset.recorrencia === 'none');
+
+            // Parcelas já nascem todas criadas: ao dar baixa não se gera outra
+            var ehParcela = botao.dataset.parcela === '1';
+            var caixa = document.getElementById('gerarProximo');
+
+            document.getElementById('baixaRecorrencia').classList.toggle('d-none', botao.dataset.recorrencia === 'none' || ehParcela);
+
+            if (caixa) {
+                caixa.checked = !ehParcela;
+            }
 
             var modal = new bootstrap.Modal(document.getElementById('baixaModal'));
             modal.show();
