@@ -445,6 +445,27 @@ Variáveis automáticas: `cliente`, `contratante`, `numero_contrato`, `responsav
 `valor`, `data_inicio`, `data_fim`, `data_hoje`, `cidade`, `empresa`, `endereco_empresa`,
 `telefone_empresa`, `email_empresa`.
 
+# Páginas Legais (LGPD)
+
+Páginas públicas de conformidade, com layout moderno (índice lateral fixo, tabelas,
+cards de direitos e versão de impressão):
+
+| Rota | Página |
+|---|---|
+| `/politica-de-privacidade` (alias `/politica-privacidade`) | Política de Privacidade — 18 cláusulas: controlador, dados coletados, bases legais (art. 7º), compartilhamento, retenção, segurança, direitos do titular, cookies, foro |
+| `/politica-de-cookies` | Política de Cookies — tipos, tabela dos cookies realmente usados e revogação de consentimento |
+| `/termos-de-uso` | Termos de Uso — regras de utilização, orçamentos, propriedade intelectual, alerta anti-phishing |
+| `/lgpd` | Central LGPD — princípios, governança (ROPA/auditoria) e **formulário de solicitação do titular** com protocolo |
+
+- Rotas em `routes/legal.php`, carregado **antes** de `routes/web.php` (o catch-all `/{slug}` capturaria as URLs).
+- Controller: `App\Controllers\LegalController` · CSS: `assets/css/legal.css`
+- **Solicitações do titular** ficam na tabela `lgpd_requests` (com protocolo, IP e user-agent) e
+  podem ser analisadas/respondidas em **`/admin/lgpd`**, com alerta de prazo (>14 dias) e atualização de status.
+- Formulário protegido por CSRF e por *honeypot* anti-robô.
+
+> Os textos são um **modelo de conformidade** alinhado à LGPD (Lei nº 13.709/2018) e devem ser
+> revisados pelo jurídico antes da publicação oficial, incluindo CNPJ e designação formal do encarregado (DPO).
+
 # Segurança e Governança
 
 Implementado em `app/Core/Security.php` (carregado no bootstrap da aplicação):

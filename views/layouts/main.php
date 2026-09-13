@@ -95,9 +95,10 @@ $metaKeywords = $seo['keywords'] ?? 'poços artesianos, perfuração de poços, 
     ?>
     <?php if (($lgpdSettings['cookie_consent_enabled'] ?? '1') == '1' && !isset($_COOKIE['cookie_consent'])) { ?>
     <div id="cookie-banner" class="cookie-banner" role="dialog" aria-live="polite">
-        <span><?= e($lgpdSettings['cookie_consent_text'] ?? 'Este site utiliza cookies para melhorar sua experiência. Ao continuar navegando, você concorda com nossa Política de Privacidade.') ?></span>
+        <span><?= e($lgpdSettings['cookie_consent_text'] ?? 'Este site utiliza cookies para melhorar sua experiência e para o funcionamento seguro da área restrita. Ao continuar navegando, você concorda com nossa Política de Cookies e Política de Privacidade.') ?></span>
         <div class="cookie-banner-actions">
-            <a href="/politica-privacidade">Política de Privacidade</a>
+            <a href="/politica-de-cookies">Política de Cookies</a>
+            <a href="/politica-de-privacidade">Privacidade</a>
             <button type="button" onclick="acceptCookies()">Aceitar</button>
         </div>
     </div>

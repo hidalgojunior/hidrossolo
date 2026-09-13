@@ -15,6 +15,7 @@ $app = \App\Core\App::getInstance();
 
 // Rotas específicas primeiro (evita que o catch-all /{slug} do site as capture)
 require_once __DIR__ . '/../routes/motorista.php';
+require_once __DIR__ . '/../routes/legal.php';
 
 // Carregar rotas web
 require_once __DIR__ . '/../routes/web.php';

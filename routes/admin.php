@@ -124,6 +124,10 @@ $router->group(['prefix' => 'admin', 'middleware' => [AuthMiddleware::class, Csr
     // Segurança
     $router->get('/seguranca', [\App\Controllers\Admin\SegurancaController::class, 'index']);
 
+    // LGPD (solicitações de titulares)
+    $router->get('/lgpd', [\App\Controllers\Admin\LgpdController::class, 'index']);
+    $router->post('/lgpd/responder/{id}', [\App\Controllers\Admin\LgpdController::class, 'responder']);
+
     // Usuários
     $router->get('/usuarios', [UsuariosController::class, 'index']);
     $router->get('/usuarios/novo', [UsuariosController::class, 'create']);

@@ -132,6 +132,12 @@
             </a>
         </li>
         <li>
+            <a class="nav-link <?= e(str_contains($_SERVER['REQUEST_URI'], '/admin/lgpd') ? 'active' : '') ?>" 
+               href="/admin/lgpd">
+                <i class="bi bi-person-check"></i> Solicitações LGPD
+            </a>
+        </li>
+        <li>
             <a class="nav-link <?= e(str_contains($_SERVER['REQUEST_URI'], '/admin/auditoria') ? 'active' : '') ?>" 
                href="/admin/auditoria">
                 <i class="bi bi-shield-check"></i> Auditoria
