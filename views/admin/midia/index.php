@@ -110,9 +110,25 @@ $totalPages = (int) ceil($total / max(1, $perPage));
         <div class="media-card">
             <div class="media-card-thumb">
                 <?php if ($m['is_image']) { ?>
-                    <img src="<?= e($m['thumb']) ?>" alt="<?= e($m['alt_text'] ?: $m['name']) ?>" loading="lazy">
+                    <button type="button" class="media-thumb-open"
+                            data-media-view
+                            data-id="<?= e($m['id']) ?>"
+                            data-url="<?= e($m['url']) ?>"
+                            data-name="<?= e($m['name']) ?>"
+                            data-alt="<?= e($m['alt_text']) ?>"
+                            data-category="<?= e($catLabels[$m['category']] ?? $m['category']) ?>"
+                            data-size="<?= e($m['size_human']) ?>"
+                            data-mime="<?= e($m['mime_type']) ?>"
+                            data-date="<?= e(date('d/m/Y', strtotime($m['created_at'] ?: 'now'))) ?>"
+                            title="Clique para ampliar">
+                        <img src="<?= e($m['thumb']) ?>" alt="<?= e($m['alt_text'] ?: $m['name']) ?>" loading="lazy">
+                        <span class="media-thumb-zoom"><i class="bi bi-arrows-fullscreen"></i></span>
+                    </button>
                 <?php } else { ?>
-                    <i class="bi <?= e($m['icon']) ?>"></i>
+                    <a href="<?= e($m['url']) ?>" target="_blank" rel="noopener" class="media-thumb-open" title="Abrir arquivo em nova aba">
+                        <i class="bi <?= e($m['icon']) ?>"></i>
+                        <span class="media-thumb-zoom"><i class="bi bi-box-arrow-up-right"></i></span>
+                    </a>
                 <?php } ?>
                 <span class="media-card-badge"><?= e($catLabels[$m['category']] ?? $m['category']) ?></span>
             </div>
@@ -218,6 +234,52 @@ $totalPages = (int) ceil($total / max(1, $perPage));
         </form>
     </div>
 </div>
+
+<!-- Visualizador em tela cheia -->
+<div class="media-lightbox" id="mediaLightbox" role="dialog" aria-modal="true" aria-label="Pré-visualização da mídia" hidden>
+    <div class="media-lightbox-bar">
+        <div class="media-lightbox-info">
+            <strong id="mlbName">—</strong>
+            <span class="media-lightbox-meta" id="mlbMeta"></span>
+        </div>
+
+        <div class="media-lightbox-tools">
+            <button type="button" class="media-lightbox-btn" data-mlb-zoom title="Tamanho real (tecla Z)">
+                <i class="bi bi-zoom-in"></i><span class="d-none d-sm-inline">Zoom</span>
+            </button>
+            <button type="button" class="media-lightbox-btn" data-mlb-copy title="Copiar caminho">
+                <i class="bi bi-clipboard"></i>
+            </button>
+            <a class="media-lightbox-btn" data-mlb-open href="#" target="_blank" rel="noopener" title="Abrir em nova aba">
+                <i class="bi bi-box-arrow-up-right"></i>
+            </a>
+            <a class="media-lightbox-btn" data-mlb-download href="#" download title="Baixar arquivo">
+                <i class="bi bi-download"></i>
+            </a>
+            <button type="button" class="media-lightbox-btn is-close" data-mlb-close title="Fechar (Esc)">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+    </div>
+
+    <button type="button" class="media-lightbox-nav is-prev" data-mlb-prev aria-label="Mídia anterior">
+        <i class="bi bi-chevron-left"></i>
+    </button>
+
+    <div class="media-lightbox-stage" data-mlb-stage>
+        <div class="media-lightbox-spinner" data-mlb-spinner><div class="spinner-border" role="status"></div></div>
+        <img id="mlbImage" src="" alt="">
+    </div>
+
+    <button type="button" class="media-lightbox-nav is-next" data-mlb-next aria-label="Próxima mídia">
+        <i class="bi bi-chevron-right"></i>
+    </button>
+
+    <div class="media-lightbox-foot">
+        <span id="mlbCounter"></span>
+        <span class="d-none d-md-inline text-muted ms-2">· use ← → para navegar e Esc para fechar</span>
+    </div>
+</div>
 <?php $view->endSection(); ?>
 
 <?php $view->section('scripts'); ?>
@@ -305,5 +367,139 @@ document.querySelectorAll('[data-media-edit]').forEach(function (btn) {
         document.body.style.overflow = 'hidden';
     });
 });
+
+// Visualizador em tela cheia (clique na miniatura)
+(function () {
+    var gatilhos = Array.prototype.slice.call(document.querySelectorAll('[data-media-view]'));
+    var box = document.getElementById('mediaLightbox');
+
+    if (!gatilhos.length || !box) return;
+
+    var imagem = document.getElementById('mlbImage');
+    var spinner = box.querySelector('[data-mlb-spinner]');
+    var nome = document.getElementById('mlbName');
+    var meta = document.getElementById('mlbMeta');
+    var contador = document.getElementById('mlbCounter');
+    var botaoZoom = box.querySelector('[data-mlb-zoom]');
+    var botaoCopy = box.querySelector('[data-mlb-copy]');
+    var ligaOpen = box.querySelector('[data-mlb-open]');
+    var ligaDownload = box.querySelector('[data-mlb-download]');
+    var btnPrev = box.querySelector('[data-mlb-prev]');
+    var btnNext = box.querySelector('[data-mlb-next]');
+    var estagio = box.querySelector('[data-mlb-stage]');
+    var atual = 0;
+    var overflowAnterior = '';
+
+    function atributo(btn, nome) {
+        return btn.getAttribute('data-' + nome) || '';
+    }
+
+    function mostrar(indice) {
+        if (indice < 0) { indice = gatilhos.length - 1; }
+        if (indice >= gatilhos.length) { indice = 0; }
+        atual = indice;
+
+        var btn = gatilhos[atual];
+        var url = atributo(btn, 'url');
+
+        box.classList.remove('is-zoomed');
+        botaoZoom.classList.remove('is-active');
+        botaoZoom.querySelector('i').className = 'bi bi-zoom-in';
+        estagio.scrollTop = 0;
+        estagio.scrollLeft = 0;
+
+        spinner.hidden = false;
+        imagem.style.opacity = '0';
+        meta.textContent = 'carregando...';
+
+        imagem.onload = function () {
+            spinner.hidden = true;
+            imagem.style.opacity = '1';
+
+            var detalhes = [imagem.naturalWidth + ' × ' + imagem.naturalHeight + ' px'];
+
+            if (atributo(btn, 'size')) { detalhes.push(atributo(btn, 'size')); }
+            if (atributo(btn, 'category')) { detalhes.push(atributo(btn, 'category')); }
+            if (atributo(btn, 'date')) { detalhes.push(atributo(btn, 'date')); }
+
+            meta.textContent = detalhes.join(' · ');
+        };
+
+        imagem.onerror = function () {
+            spinner.hidden = true;
+            imagem.style.opacity = '1';
+            meta.textContent = 'Não foi possível carregar a imagem.';
+        };
+
+        imagem.src = url;
+        imagem.alt = atributo(btn, 'alt') || atributo(btn, 'name');
+        nome.textContent = atributo(btn, 'name') || 'Mídia';
+        ligaOpen.href = url;
+        ligaDownload.href = url;
+
+        contador.textContent = 'Mídia ' + (atual + 1) + ' de ' + gatilhos.length;
+
+        var varias = gatilhos.length > 1;
+        btnPrev.hidden = !varias;
+        btnNext.hidden = !varias;
+    }
+
+    function alternarZoom() {
+        var ampliado = box.classList.toggle('is-zoomed');
+        botaoZoom.classList.toggle('is-active', ampliado);
+        botaoZoom.querySelector('i').className = ampliado ? 'bi bi-zoom-out' : 'bi bi-zoom-in';
+    }
+
+    function teclado(evento) {
+        if (evento.key === 'Escape') {
+            fechar();
+        } else if (evento.key === 'ArrowRight') {
+            mostrar(atual + 1);
+        } else if (evento.key === 'ArrowLeft') {
+            mostrar(atual - 1);
+        } else if (evento.key === 'z' || evento.key === 'Z') {
+            alternarZoom();
+        }
+    }
+
+    function fechar() {
+        box.hidden = true;
+        imagem.removeAttribute('src');
+        document.body.style.overflow = overflowAnterior;
+        document.removeEventListener('keydown', teclado);
+
+        if (gatilhos[atual]) { gatilhos[atual].focus(); }
+    }
+
+    function abrir(indice) {
+        overflowAnterior = document.body.style.overflow;
+        box.hidden = false;
+        document.body.style.overflow = 'hidden';
+        mostrar(indice);
+        document.addEventListener('keydown', teclado);
+        box.querySelector('[data-mlb-close]').focus();
+    }
+
+    gatilhos.forEach(function (btn, i) {
+        btn.addEventListener('click', function (evento) {
+            evento.preventDefault();
+            abrir(i);
+        });
+    });
+
+    box.querySelector('[data-mlb-close]').addEventListener('click', fechar);
+    btnPrev.addEventListener('click', function () { mostrar(atual - 1); });
+    btnNext.addEventListener('click', function () { mostrar(atual + 1); });
+    botaoZoom.addEventListener('click', alternarZoom);
+    imagem.addEventListener('click', alternarZoom);
+    botaoCopy.addEventListener('click', function () {
+        mediaCopy(atributo(gatilhos[atual], 'url'), botaoCopy);
+    });
+
+    // Clique no fundo escuro (fora da imagem) fecha
+    estagio.addEventListener('click', function (evento) {
+        if (evento.target === estagio) { fechar(); }
+    });
+})();
 </script>
 <?php $view->endSection(); ?>
