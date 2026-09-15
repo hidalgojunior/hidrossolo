@@ -1,6 +1,12 @@
 # Arquivos de configuração sensíveis
 .env
+.env.producao
 config.local.php
+
+# Credenciais de deploy (FTP/SFTP)
+.ftp-deploy.conf
+.deploy-*.conf
+*.ftp-credentials
 
 # Logs
 *.log
