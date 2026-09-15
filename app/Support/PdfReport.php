@@ -80,10 +80,16 @@ final class PdfReport
             . self::css()
             . '</style></head><body>';
 
+        // Logo da marca (Admin -> CMS -> Contato). Quando o arquivo não está
+        // disponível, o cabeçalho cai na inicial dentro de um quadrado.
+        $logo = self::logoDataUri((string) ($empresa['site_logo'] ?? ''));
+
         // Cabeçalho
         $html .= '<div class="doc-header">'
             . '<div class="brand">'
-            . '<div class="brand-mark">H</div>'
+            . ($logo !== null
+                ? '<div class="brand-logo"><img src="' . $logo['uri'] . '" style="width:' . $logo['width'] . 'px;height:' . $logo['height'] . 'px" alt=""></div>'
+                : '<div class="brand-mark">' . self::e(mb_strtoupper(mb_substr($nomeEmpresa, 0, 1))) . '</div>')
             . '<div class="brand-text"><strong>' . self::e($nomeEmpresa) . '</strong>'
             . ($linhaEmpresa !== '' ? '<span>' . self::e($linhaEmpresa) . '</span>' : '')
             . '</div></div>'
@@ -169,6 +175,75 @@ final class PdfReport
 
     /* ===================================================================== */
 
+    /**
+     * Logo da marca pronta para embutir no PDF.
+     *
+     * O dompdf é instanciado com `isRemoteEnabled` desligado, então não dá para
+     * apontar para uma URL nem confiar no caminho relativo: o arquivo é lido do
+     * disco e embutido como data URI (base64).
+     *
+     * Devolve null quando o caminho é inválido, o arquivo não existe ou a
+     * extensão não é de imagem — nesse caso o cabeçalho usa a inicial.
+     *
+     * @return array{uri:string,width:int,height:int}|null
+     */
+    private static function logoDataUri(string $webPath): ?array
+    {
+        $webPath = trim($webPath);
+
+        // Somente caminho absoluto dentro do site, sem "..".
+        if ($webPath === '' || !str_starts_with($webPath, '/') || str_contains($webPath, '..')) {
+            return null;
+        }
+
+        // /assets/... fica na RAIZ do projeto (o document root é public/).
+        $arquivo = dirname(__DIR__, 2) . $webPath;
+
+        if (!is_file($arquivo) || !is_readable($arquivo)) {
+            return null;
+        }
+
+        $mime = match (strtolower((string) pathinfo($arquivo, PATHINFO_EXTENSION))) {
+            'png' => 'image/png',
+            'jpg', 'jpeg' => 'image/jpeg',
+            'gif' => 'image/gif',
+            'webp' => 'image/webp',
+            'svg' => 'image/svg+xml',
+            default => null,
+        };
+
+        if ($mime === null) {
+            return null;
+        }
+
+        $conteudo = @file_get_contents($arquivo);
+
+        if ($conteudo === false) {
+            return null;
+        }
+
+        // Cabe em 120x34 px, sem ampliar logos pequenas e mantendo a proporção.
+        $info = @getimagesize($arquivo);
+        $largura = (int) ($info[0] ?? 0);
+        $altura = (int) ($info[1] ?? 0);
+
+        if ($largura > 0 && $altura > 0) {
+            $escala = min(120 / $largura, 34 / $altura, 1);
+            $largura = max(1, (int) round($largura * $escala));
+            $altura = max(1, (int) round($altura * $escala));
+        } else {
+            // SVG e formatos sem metadados legíveis.
+            $largura = 120;
+            $altura = 34;
+        }
+
+        return [
+            'uri' => 'data:' . $mime . ';base64,' . base64_encode($conteudo),
+            'width' => $largura,
+            'height' => $altura,
+        ];
+    }
+
     private static function css(): string
     {
         return '
@@ -179,6 +254,8 @@ final class PdfReport
             .brand { display: table; width: 100%; }
             .brand-mark { display: table-cell; width: 34px; height: 34px; background: #0f2b46; color: #fff;
                 font-size: 18px; font-weight: bold; text-align: center; vertical-align: middle; border-radius: 8px; }
+            .brand-logo { display: table-cell; vertical-align: middle; padding-right: 10px; text-align: left; }
+            .brand-logo img { display: block; }
             .brand-text { display: table-cell; vertical-align: middle; padding-left: 10px; }
             .brand-text strong { display: block; font-size: 13px; color: #0f2b46; }
             .brand-text span { display: block; font-size: 8px; color: #64748b; }

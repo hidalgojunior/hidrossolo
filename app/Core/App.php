@@ -121,6 +121,10 @@ class App
             'form_title'    => 'Envie sua Mensagem',
             'form_text'     => 'Entre em contato e solicite seu orçamento',
 
+            // Logo da marca (Admin -> CMS -> Contato). Usada no cabeçalho dos
+            // relatórios em PDF, entre outros.
+            'site_logo'        => '/assets/images/hidrossolo.png',
+
             // Redes sociais (Admin -> CMS -> Contato). Vazio = não exibido.
             'social_instagram' => '',
             'social_facebook'  => '',
