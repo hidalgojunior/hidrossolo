@@ -123,7 +123,8 @@ $tiposLabel = ['preventive' => 'Preventiva', 'corrective' => 'Corretiva'];
     </div>
 </div>
 
-<!-- Gráficos -->
+<!-- Gráficos (só aparecem quando existe dado no período) -->
+<?php if (!empty($labels)) { ?>
 <div class="row g-4 mb-4">
     <div class="col-lg-6">
         <div class="card h-100">
@@ -138,6 +139,7 @@ $tiposLabel = ['preventive' => 'Preventiva', 'corrective' => 'Corretiva'];
         </div>
     </div>
 </div>
+<?php } ?>
 
 <!-- Por ativo -->
 <div class="card mb-4">

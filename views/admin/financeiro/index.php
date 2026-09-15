@@ -2,6 +2,25 @@
 $view->layout('layouts.admin');
 
 $moeda = static fn(float $v): string => 'R$ ' . number_format($v, 2, ',', '.');
+
+// Regra da tela: caixa sem informação não é exibida.
+// Só renderizamos cada bloco quando existe dado real para mostrar.
+$temCategorias = !empty($porCategoria);
+
+$temFluxo = false;
+foreach ($fluxoMensal as $mesFluxo) {
+    if ((float) $mesFluxo['entradas'] > 0 || (float) $mesFluxo['saidas'] > 0) {
+        $temFluxo = true;
+        break;
+    }
+}
+
+$temReceber     = (int) ($resumo['a_receber_qtd'] ?? 0) > 0;
+$temPagar       = (int) ($resumo['a_pagar_qtd'] ?? 0) > 0;
+$temAtraso      = (int) ($resumo['atrasadas_qtd'] ?? 0) > 0;
+$temRealizado   = (float) ($resumo['recebido'] ?? 0) > 0 || (float) ($resumo['pago'] ?? 0) > 0;
+$temIndicadores = $temReceber || $temPagar || $temAtraso || $temRealizado;
+$temLateral     = $temFluxo || $temCategorias;
 $queryAtual = http_build_query(array_filter([
     'mes' => $filtros['mes'],
     'kind' => $filtros['kind'],
@@ -48,9 +67,11 @@ $situacaoBadge = static function (array $l): array {
     </div>
 </div>
 
-<!-- Indicadores -->
+<!-- Indicadores (cada caixa só aparece se tiver informação) -->
+<?php if ($temIndicadores) { ?>
 <div class="row g-3 mb-4">
-    <div class="col-6 col-lg-3">
+    <?php if ($temReceber) { ?>
+    <div class="col-6 col-lg">
         <div class="stat-card" style="border-left:4px solid #16a34a">
             <div>
                 <div class="stat-label">A receber</div>
@@ -59,7 +80,9 @@ $situacaoBadge = static function (array $l): array {
             </div>
         </div>
     </div>
-    <div class="col-6 col-lg-3">
+    <?php } ?>
+    <?php if ($temPagar) { ?>
+    <div class="col-6 col-lg">
         <div class="stat-card" style="border-left:4px solid #dc2626">
             <div>
                 <div class="stat-label">A pagar</div>
@@ -68,7 +91,9 @@ $situacaoBadge = static function (array $l): array {
             </div>
         </div>
     </div>
-    <div class="col-6 col-lg-3">
+    <?php } ?>
+    <?php if ($temReceber || $temPagar || $temRealizado) { ?>
+    <div class="col-6 col-lg">
         <div class="stat-card" style="border-left:4px solid <?= $resumo['previsto'] >= 0 ? '#0891b2' : '#d97706' ?>">
             <div>
                 <div class="stat-label">Saldo previsto</div>
@@ -77,7 +102,9 @@ $situacaoBadge = static function (array $l): array {
             </div>
         </div>
     </div>
-    <div class="col-6 col-lg-3">
+    <?php } ?>
+    <?php if ($temAtraso) { ?>
+    <div class="col-6 col-lg">
         <div class="stat-card" style="border-left:4px solid #d97706">
             <div>
                 <div class="stat-label">Em atraso</div>
@@ -86,7 +113,9 @@ $situacaoBadge = static function (array $l): array {
             </div>
         </div>
     </div>
+    <?php } ?>
 </div>
+<?php } ?>
 
 <!-- Filtros -->
 <div class="card mb-4">
@@ -138,7 +167,7 @@ $situacaoBadge = static function (array $l): array {
 </div>
 
 <div class="row g-4">
-    <div class="col-xl-8">
+    <div class="<?= $temLateral ? 'col-xl-8' : 'col-12' ?>">
         <div class="card">
             <div class="card-body p-0">
                 <?php if (empty($lancamentos)) { ?>
@@ -228,33 +257,33 @@ $situacaoBadge = static function (array $l): array {
     </div>
 
     <div class="col-xl-4">
+        <?php if ($temFluxo) { ?>
         <div class="card mb-4">
             <div class="card-header"><strong>Fluxo mensal <?= e(date('Y', (int) strtotime($filtros['inicio']))) ?></strong></div>
             <div class="card-body">
                 <canvas id="graficoFluxo" height="220"></canvas>
             </div>
         </div>
+        <?php } ?>
 
+        <?php if ($temCategorias) { ?>
         <div class="card">
             <div class="card-header"><strong>Resumo por categoria</strong></div>
             <div class="card-body">
-                <?php if (empty($porCategoria)) { ?>
-                    <p class="text-muted small mb-0">Sem lançamentos no período.</p>
-                <?php } else { ?>
-                    <ul class="driver-extras" style="font-size:.82rem">
-                        <?php foreach ($porCategoria as $c) { ?>
-                            <li>
-                                <i class="bi <?= e(\App\Support\Financeiro::categoriaIcone($c['kind'], $c['category'])) ?>"></i>
-                                <?= e(\App\Support\Financeiro::categoriaLabel($c['kind'], $c['category'])) ?>
-                                <span class="<?= $c['kind'] === 'income' ? 'text-success' : 'text-danger' ?>">
-                                    <?= e($c['kind'] === 'income' ? '+' : '-') ?> <?= e($moeda((float) $c['total'])) ?>
-                                </span>
-                            </li>
-                        <?php } ?>
-                    </ul>
-                <?php } ?>
+                <ul class="driver-extras" style="font-size:.82rem">
+                    <?php foreach ($porCategoria as $c) { ?>
+                        <li>
+                            <i class="bi <?= e(\App\Support\Financeiro::categoriaIcone($c['kind'], $c['category'])) ?>"></i>
+                            <?= e(\App\Support\Financeiro::categoriaLabel($c['kind'], $c['category'])) ?>
+                            <span class="<?= $c['kind'] === 'income' ? 'text-success' : 'text-danger' ?>">
+                                <?= e($c['kind'] === 'income' ? '+' : '-') ?> <?= e($moeda((float) $c['total'])) ?>
+                            </span>
+                        </li>
+                    <?php } ?>
+                </ul>
             </div>
         </div>
+        <?php } ?>
     </div>
 </div>
 
