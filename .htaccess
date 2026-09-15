@@ -1,25 +1,72 @@
-RewriteEngine On
+# =============================================================================
+#  Hidrossolo — Roteamento Apache / LiteSpeed (hospedagem compartilhada)
+# =============================================================================
+#  Este arquivo reproduz o roteamento definido em docker/nginx/default.conf,
+#  para o caso do document root ser a RAIZ DO PROJETO (/public_html).
+#
+#     /admin*   -> public/admin/index.php   (painel / área restrita)
+#     resto     -> public/index.php         (site + API)
+#     /assets*  -> servido da raiz do projeto (arquivos reais, sem rewrite)
+#
+#  O nginx NÃO lê .htaccess, então este arquivo não interfere no ambiente local.
+# =============================================================================
 
-# Proteger pasta includes
-RewriteRule ^includes/ - [F,L]
-
-# Proteger uploads (exceto imagens públicas)
-RewriteRule ^uploads/(?!.*\.(jpg|jpeg|png|gif|webp)$) - [F,L]
-
-# Proteger arquivos de configuração
-RewriteRule \.(env|sql|log)$ - [F,L]
-
-# Sistema de páginas WordPress-like
-RewriteRule ^page/([^/]+)/?$ index.php?page=$1 [QSA,L]
-RewriteRule ^blog/([^/]+)/?$ pages/blog.php?post=$1 [QSA,L]
-
-# Redirecionar HTTP para HTTPS (se aplicável)
-# RewriteCond %{HTTPS} off
-# RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
-
-# Outras regras de segurança
-# Prevenir acesso a arquivos .htaccess
-RewriteRule \.htaccess$ - [F,L]
-
-# Prevenir listagem de diretórios
 Options -Indexes
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # -------------------------------------------------------------------------
+    # 1. Segurança — bloquear pastas e arquivos que não devem ser públicos
+    # -------------------------------------------------------------------------
+    RewriteRule ^(app|vendor|config|database|routes|views|storage|cache|logs|docker|docs)/ - [F,L]
+    RewriteRule ^(composer\.json|composer\.lock|migrate\.php|start\.sh|backup[^/]*\.sh)$ - [F,L]
+    RewriteRule \.(env|sql|log|gz|tar|zip)$ - [F,L]
+    RewriteRule ^\.htaccess$ - [F,L]
+
+    # Arquivos ocultos (exceto .well-known, usado na renovação do SSL)
+    RewriteCond %{REQUEST_URI} !^/\.well-known/
+    RewriteRule ^\. - [F,L]
+
+    # Pasta uploads legada da raiz: libera apenas imagens
+    RewriteRule ^uploads/(?!.*\.(jpg|jpeg|png|gif|webp)$) - [F,L]
+
+    # -------------------------------------------------------------------------
+    # 2. Painel administrativo — /admin/* vai para o entry point do painel
+    #    (precisa vir antes das regras genéricas: /admin é uma pasta real)
+    # -------------------------------------------------------------------------
+    RewriteRule ^admin(/.*)?$ public/admin/index.php [L,QSA]
+
+    # -------------------------------------------------------------------------
+    # 3. Arquivos do PWA que ficam dentro de public/
+    # -------------------------------------------------------------------------
+    RewriteRule ^(sw\.js|sw-admin\.js|manifest\.webmanifest|manifest-admin\.webmanifest|offline\.html)$ public/$1 [L]
+
+    # -------------------------------------------------------------------------
+    # 4. Raiz do site
+    # -------------------------------------------------------------------------
+    RewriteRule ^$ public/index.php [L]
+
+    # -------------------------------------------------------------------------
+    # 5. Front controller — rotas amigáveis vão para public/index.php
+    # -------------------------------------------------------------------------
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^ public/index.php [L,QSA]
+</IfModule>
+
+# -----------------------------------------------------------------------------
+# MIME type do manifest (necessário para instalar o PWA)
+# -----------------------------------------------------------------------------
+<IfModule mod_mime.c>
+    AddType application/manifest+json .webmanifest
+</IfModule>
+
+# -----------------------------------------------------------------------------
+# Service worker não pode ser cacheado agressivamente
+# -----------------------------------------------------------------------------
+<IfModule mod_headers.c>
+    <FilesMatch "^(sw|sw-admin)\.js$">
+        Header set Cache-Control "no-cache, must-revalidate"
+    </FilesMatch>
+</IfModule>
