@@ -147,6 +147,8 @@ $router->group(['prefix' => 'admin', 'middleware' => [AuthMiddleware::class, Csr
     $router->post('/financeiro/excluir/{id}', [\App\Controllers\Admin\FinanceiroController::class, 'delete']);
     $router->get('/frota/editar/{id}', [VeiculosController::class, 'edit']);
     $router->post('/frota/editar/{id}', [VeiculosController::class, 'update']);
+    $router->post('/frota/status/{id}', [VeiculosController::class, 'toggleStatus']);
+    $router->post('/frota/excluir/{id}', [VeiculosController::class, 'delete']);
 
     // Contratos — modelos com variáveis (antes das rotas com {id})
     $router->get('/contratos/modelos', [\App\Controllers\Admin\ContratoTemplatesController::class, 'index']);
@@ -162,6 +164,7 @@ $router->group(['prefix' => 'admin', 'middleware' => [AuthMiddleware::class, Csr
     $router->post('/contratos/novo', [ContratosController::class, 'store']);
     $router->get('/contratos/editar/{id}', [ContratosController::class, 'edit']);
     $router->post('/contratos/editar/{id}', [ContratosController::class, 'update']);
+    $router->post('/contratos/excluir/{id}', [ContratosController::class, 'delete']);
     $router->get('/contratos/documento/{id}', [ContratosController::class, 'documento']);
     $router->get('/contratos/pdf/{id}', [ContratosController::class, 'pdf']);
 
@@ -178,6 +181,7 @@ $router->group(['prefix' => 'admin', 'middleware' => [AuthMiddleware::class, Csr
     $router->post('/usuarios/novo', [UsuariosController::class, 'store']);
     $router->get('/usuarios/editar/{id}', [UsuariosController::class, 'edit']);
     $router->post('/usuarios/editar/{id}', [UsuariosController::class, 'update']);
+    $router->post('/usuarios/excluir/{id}', [UsuariosController::class, 'delete']);
 
     // Mídia
     $router->get('/midia', [MidiaController::class, 'index']);
@@ -226,6 +230,7 @@ $router->group(['prefix' => 'admin', 'middleware' => [AuthMiddleware::class, Csr
     $router->get('/abastecimentos/xlsx', [AbastecimentosController::class, 'xlsx']);
     $router->get('/abastecimentos/novo', [AbastecimentosController::class, 'create']);
     $router->post('/abastecimentos/novo', [AbastecimentosController::class, 'store']);
+    $router->post('/abastecimentos/excluir/{id}', [AbastecimentosController::class, 'delete']);
 
     // SEO
     $router->get('/seo', [SEOController::class, 'index']);

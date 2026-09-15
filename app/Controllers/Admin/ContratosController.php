@@ -209,6 +209,35 @@ class ContratosController extends BaseController
         exit;
     }
 
+    /**
+     * Exclui um contrato. Os arquivos anexos caem junto (ON DELETE CASCADE).
+     */
+    public function delete(string $id): void
+    {
+        $db = $this->db();
+        $contrato = $this->contrato((int) $id);
+
+        if (!$contrato) {
+            $_SESSION['flash_error'] = 'Contrato não encontrado.';
+            $this->redirect('/admin/contratos');
+        }
+
+        $anexos = (int) $db->fetch(
+            'SELECT COUNT(*) AS n FROM contract_files WHERE contract_id = ?',
+            [$id]
+        )['n'];
+
+        if ($anexos > 0) {
+            $db->delete('contract_files', 'contract_id = ?', [$id]);
+        }
+
+        $db->delete('contracts', 'id = ?', [$id]);
+        Security::audit('contract_deleted', 'contracts', (int) $id);
+
+        $_SESSION['flash_success'] = 'Contrato excluído com sucesso!';
+        $this->redirect('/admin/contratos');
+    }
+
     /* ===================================================================== */
 
     private function contractDocumentHtml(string $content): string

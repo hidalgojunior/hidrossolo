@@ -186,7 +186,7 @@ class FinanceiroController extends BaseController
             ? 'Lançamento baixado com sucesso!'
             : 'Lançamento atualizado.';
 
-        $this->redirect($_POST['redirect'] ?? '/admin/financeiro');
+        $this->redirectInterno($_POST['redirect'] ?? null, '/admin/financeiro');
     }
 
     public function delete(string $id): void
@@ -195,7 +195,7 @@ class FinanceiroController extends BaseController
         Security::audit('finance_deleted', 'financial_entries', (int) $id);
 
         $_SESSION['flash_success'] = 'Lançamento excluído.';
-        $this->redirect('/admin/financeiro');
+        $this->redirectInterno($_POST['redirect'] ?? null, '/admin/financeiro');
     }
 
     /**

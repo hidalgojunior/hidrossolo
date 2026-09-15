@@ -24,13 +24,18 @@ class VeiculosController extends BaseController
         $params = [];
 
         if (in_array($tipo, ['vehicle', 'equipment'], true)) {
-            $where = 'WHERE category = ?';
+            $where = 'WHERE v.category = ?';
             $params[] = $tipo;
         }
 
         $veiculos = $db->fetchAll(
-            "SELECT * FROM vehicles {$where}
-             ORDER BY category, COALESCE(NULLIF(plate, ''), equipment_type), brand",
+            "SELECT v.*,
+                    (SELECT COUNT(*) FROM vehicle_fuel f WHERE f.vehicle_id = v.id) AS fuel_count,
+                    (SELECT COUNT(*) FROM vehicle_maintenance m WHERE m.vehicle_id = v.id) AS maint_count,
+                    (SELECT COUNT(*) FROM fleet_schedules s WHERE s.vehicle_id = v.id) AS schedule_count,
+                    (SELECT COUNT(*) FROM vehicles c WHERE c.parent_vehicle_id = v.id) AS child_count
+             FROM vehicles v {$where}
+             ORDER BY v.category, COALESCE(NULLIF(v.plate, ''), v.equipment_type), v.brand",
             $params
         );
 
@@ -242,6 +247,97 @@ class VeiculosController extends BaseController
         Security::audit($isEquipment ? 'equipment_updated' : 'vehicle_updated', 'vehicles', (int) $id);
 
         $_SESSION['flash_success'] = 'Registro atualizado com sucesso!';
+        $this->redirect('/admin/frota');
+    }
+
+    /* ===================================================================== */
+
+    /**
+     * Ativa/desativa um veículo ou equipamento (operação reversível).
+     */
+    public function toggleStatus(string $id): void
+    {
+        $db = $this->db();
+        $registro = $db->fetch("SELECT id, status, category FROM vehicles WHERE id = ?", [$id]);
+
+        if (!$registro) {
+            $_SESSION['flash_error'] = 'Registro não encontrado.';
+            $this->redirect('/admin/frota');
+        }
+
+        $novo = ($registro['status'] === 'inactive') ? 'active' : 'inactive';
+
+        $db->update('vehicles', ['status' => $novo], 'id = ?', [$id]);
+        Security::audit('vehicle_status_changed', 'vehicles', (int) $id);
+
+        $rotulo = ($registro['category'] ?? 'vehicle') === 'equipment' ? 'Equipamento' : 'Veículo';
+
+        $_SESSION['flash_success'] = $novo === 'inactive'
+            ? $rotulo . ' desativado. Ele continua no histórico, mas sai da lista de ativos.'
+            : $rotulo . ' reativado com sucesso!';
+
+        $this->redirect('/admin/frota');
+    }
+
+    /**
+     * Exclui um veículo/equipamento.
+     *
+     * ATENÇÃO: o schema define ON DELETE CASCADE nas tabelas vehicle_fuel e
+     * vehicle_maintenance. Excluir o registro apaga junto todo o histórico de
+     * abastecimentos e manutenções dele. Por isso a exclusão é bloqueada
+     * quando existe histórico: nesse caso orientamos a desativar.
+     */
+    public function delete(string $id): void
+    {
+        $db = $this->db();
+        $registro = $db->fetch("SELECT id, category FROM vehicles WHERE id = ?", [$id]);
+
+        if (!$registro) {
+            $_SESSION['flash_error'] = 'Registro não encontrado.';
+            $this->redirect('/admin/frota');
+        }
+
+        $rotulo = ($registro['category'] ?? 'vehicle') === 'equipment' ? 'Equipamento' : 'Veículo';
+
+        $abastecimentos = (int) $db->fetch(
+            "SELECT COUNT(*) AS n FROM vehicle_fuel WHERE vehicle_id = ?",
+            [$id]
+        )['n'];
+
+        $manutencoes = (int) $db->fetch(
+            "SELECT COUNT(*) AS n FROM vehicle_maintenance WHERE vehicle_id = ?",
+            [$id]
+        )['n'];
+
+        $agendamentos = (int) $db->fetch(
+            "SELECT COUNT(*) AS n FROM fleet_schedules WHERE vehicle_id = ?",
+            [$id]
+        )['n'];
+
+        if ($abastecimentos > 0 || $manutencoes > 0) {
+            $_SESSION['flash_error'] = sprintf(
+                '%s não pode ser excluído: existem %d abastecimento(s) e %d manutenção(ões) ligados a ele, ' .
+                'e a exclusão apagaria todo esse histórico. Use "Desativar" para tirá-lo do uso sem perder os registros.',
+                $rotulo,
+                $abastecimentos,
+                $manutencoes
+            );
+
+            $this->redirect('/admin/frota');
+        }
+
+        // Equipamentos vinculados ficam apenas sem vínculo (ON DELETE SET NULL)
+        $db->query('UPDATE vehicles SET parent_vehicle_id = NULL WHERE parent_vehicle_id = ?', [$id]);
+
+        // Agendamentos não têm FK: limpa para não deixar órfãos
+        if ($agendamentos > 0) {
+            $db->delete('fleet_schedules', 'vehicle_id = ?', [$id]);
+        }
+
+        $db->delete('vehicles', 'id = ?', [$id]);
+        Security::audit('vehicle_deleted', 'vehicles', (int) $id);
+
+        $_SESSION['flash_success'] = $rotulo . ' excluído com sucesso!';
         $this->redirect('/admin/frota');
     }
 

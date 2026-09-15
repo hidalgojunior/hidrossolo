@@ -243,6 +243,14 @@ $anoSeguinte = $mes === 12 ? $ano + 1 : $ano;
                                         <i class="bi bi-check-lg"></i>
                                     </button>
                                 </form>
+                                <form method="POST" action="/admin/agenda/excluir/<?= e($p['id']) ?>"
+                                      onsubmit="return confirm('Excluir este compromisso da agenda? Não há como desfazer.')">
+                                    <?= csrf_field() ?>
+                                    <input type="hidden" name="redirect" value="/admin/agenda?mes=<?= e($mes) ?>&ano=<?= e($ano) ?>">
+                                    <button class="btn btn-sm btn-outline-danger" title="Excluir compromisso">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
                             </div>
                         <?php } ?>
                     </div>
@@ -273,6 +281,14 @@ $anoSeguinte = $mes === 12 ? $ano + 1 : $ano;
                                 <span class="badge <?= $entrada ? 'bg-success' : 'bg-danger' ?> text-nowrap">
                                     <?= e($entrada ? '+' : '-') ?> R$ <?= e(number_format((float) $c['amount'], 2, ',', '.')) ?>
                                 </span>
+                                <form method="POST" action="/admin/financeiro/excluir/<?= e($c['id']) ?>"
+                                      onsubmit="return confirm('Excluir este lançamento? Não há como desfazer.')">
+                                    <?= csrf_field() ?>
+                                    <input type="hidden" name="redirect" value="/admin/agenda?mes=<?= e($mes) ?>&ano=<?= e($ano) ?>">
+                                    <button class="btn btn-sm btn-outline-danger" title="Excluir lançamento">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
                             </li>
                         <?php } ?>
                     </ul>
@@ -295,6 +311,14 @@ $anoSeguinte = $mes === 12 ? $ano + 1 : $ano;
                                 <span class="badge bg-danger text-nowrap">
                                     <?= e($entrada ? '+' : '-') ?> R$ <?= e(number_format((float) $c['amount'], 2, ',', '.')) ?>
                                 </span>
+                                <form method="POST" action="/admin/financeiro/excluir/<?= e($c['id']) ?>"
+                                      onsubmit="return confirm('Excluir este lançamento? Não há como desfazer.')">
+                                    <?= csrf_field() ?>
+                                    <input type="hidden" name="redirect" value="/admin/agenda?mes=<?= e($mes) ?>&ano=<?= e($ano) ?>">
+                                    <button class="btn btn-sm btn-outline-danger" title="Excluir lançamento">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
                             </li>
                         <?php } ?>
                     </ul>

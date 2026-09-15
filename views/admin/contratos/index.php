@@ -70,6 +70,11 @@ $statusLabel = [
                                             </a>
                                         <?php } ?>
                                         <a href="/admin/contratos/editar/<?= e($c['id']) ?>" class="btn btn-sm btn-outline-primary">Editar</a>
+                                        <form action="/admin/contratos/excluir/<?= e($c['id']) ?>" method="POST" class="d-inline"
+                                              onsubmit="return confirm('Excluir este contrato? Os arquivos anexos também serão apagados.')">
+                                            <?= csrf_field() ?>
+                                            <button class="btn btn-sm btn-outline-danger">Excluir</button>
+                                        </form>
                                     </div>
                                 </td>
                             </tr>

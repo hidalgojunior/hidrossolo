@@ -348,7 +348,7 @@ class AgendaController extends BaseController
         Security::audit('schedule_' . $status, 'fleet_schedules', $id);
 
         $_SESSION['flash_success'] = 'Compromisso atualizado.';
-        $this->redirect($_POST['redirect'] ?? '/admin/agenda');
+        $this->redirectInterno($_POST['redirect'] ?? null, '/admin/agenda');
     }
 
     public function delete(string $id): void
@@ -357,8 +357,8 @@ class AgendaController extends BaseController
         $this->db()->delete('fleet_schedules', 'id = ?', [$id]);
         Security::audit('schedule_deleted', 'fleet_schedules', $id);
 
-        $_SESSION['flash_success'] = 'Compromisso removido.';
-        $this->redirect('/admin/agenda');
+        $_SESSION['flash_success'] = 'Compromisso removido da agenda.';
+        $this->redirectInterno($_POST['redirect'] ?? null, '/admin/agenda');
     }
 
     /* ===================================================================== */

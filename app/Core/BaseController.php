@@ -25,6 +25,27 @@ abstract class BaseController
         exit;
     }
 
+    /**
+     * Redireciona apenas para um caminho interno do próprio site.
+     *
+     * Usado quando o destino vem de um campo "redirect" do formulário:
+     * sem isso, um POST poderia mandar o usuário para um site externo
+     * (redirecionamento aberto).
+     */
+    protected function redirectInterno(mixed $destino, string $padrao): void
+    {
+        $destino = trim((string) $destino);
+
+        $seguro = $destino !== ''
+            && str_starts_with($destino, '/')
+            && !str_starts_with($destino, '//')
+            && !str_starts_with($destino, '/\\')
+            && !str_contains($destino, "\n")
+            && !str_contains($destino, "\r");
+
+        $this->redirect($seguro ? $destino : $padrao);
+    }
+
     protected function back(): void
     {
         $url = $_SERVER['HTTP_REFERER'] ?? '/';

@@ -255,6 +255,49 @@ class UsuariosController extends BaseController
         $this->redirect('/admin/usuarios');
     }
 
+    /**
+     * Exclui um usuário, respeitando as mesmas proteções da edição.
+     */
+    public function delete(string $id): void
+    {
+        $alvo = $this->buscar((int) $id);
+
+        // Ninguém exclui a própria conta
+        if ((int) $alvo['id'] === (int) ($_SESSION['user_id'] ?? 0)) {
+            $_SESSION['flash_error'] = 'Você não pode excluir o seu próprio usuário.';
+            $this->redirect('/admin/usuarios');
+        }
+
+        // A conta administradora geral nunca pode ser excluída
+        if (strtolower((string) $alvo['email']) === self::OWNER_EMAIL) {
+            $_SESSION['flash_error'] = 'A conta administradora geral não pode ser excluída.';
+            $this->redirect('/admin/usuarios');
+        }
+
+        // Somente superadmin administra superadmin
+        if ((int) $alvo['role_id'] === 5 && !$this->isSuperAdmin()) {
+            $_SESSION['flash_error'] = 'Você não tem permissão para excluir este usuário.';
+            $this->redirect('/admin/usuarios');
+        }
+
+        // Não deixar o sistema sem nenhum administrador ativo
+        $outrosAdmins = (int) $this->db()->fetch(
+            'SELECT COUNT(*) AS n FROM users WHERE role_id IN (1, 5) AND active = 1 AND id <> ?',
+            [$id]
+        )['n'];
+
+        if ($outrosAdmins === 0) {
+            $_SESSION['flash_error'] = 'Não é possível excluir o último administrador ativo do sistema.';
+            $this->redirect('/admin/usuarios');
+        }
+
+        $this->db()->delete('users', 'id = ?', [$id]);
+        Security::audit('user_deleted', 'users', (int) $id, ['email' => $alvo['email']]);
+
+        $_SESSION['flash_success'] = 'Usuário excluído com sucesso!';
+        $this->redirect('/admin/usuarios');
+    }
+
     /* ===================================================================== */
 
     /**

@@ -129,6 +129,28 @@ class AbastecimentosController extends BaseController
         $this->redirect('/admin/abastecimentos?veiculo_id=' . $data['vehicle_id']);
     }
 
+    /**
+     * Exclui um abastecimento. As despesas extras caem junto (ON DELETE CASCADE).
+     */
+    public function delete(string $id): void
+    {
+        $db = $this->db();
+        $registro = $db->fetch('SELECT id FROM vehicle_fuel WHERE id = ?', [$id]);
+
+        if (!$registro) {
+            $_SESSION['flash_error'] = 'Abastecimento não encontrado.';
+            $this->redirect('/admin/abastecimentos');
+        }
+
+        $db->delete('vehicle_fuel_extras', 'fuel_id = ?', [$id]);
+        $db->delete('vehicle_fuel', 'id = ?', [$id]);
+
+        Security::audit('fuel_deleted', 'vehicle_fuel', (int) $id);
+
+        $_SESSION['flash_success'] = 'Abastecimento excluído com sucesso!';
+        $this->redirect('/admin/abastecimentos');
+    }
+
     /* ===================================================================== */
 
     /**

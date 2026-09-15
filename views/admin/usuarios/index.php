@@ -28,8 +28,27 @@
                         <td><span class="badge bg-info"><?= e($u['role_name']) ?></span></td>
                         <td><?= e($u['last_login'] ? date('d/m/Y H:i', strtotime($u['last_login'])) : '—') ?></td>
                         <td><?= $u['active'] ? '<span class="badge bg-success">Ativo</span>' : '<span class="badge bg-danger">Inativo</span>' ?></td>
+                        <?php
+                        $ehVoceMesmo = (int) $u['id'] === (int) ($_SESSION['user_id'] ?? 0);
+                        $ehContaGeral = strtolower((string) $u['email']) === 'hidalgojunior@gmail.com';
+                        ?>
                         <td class="text-end">
-                            <a href="/admin/usuarios/editar/<?= e($u['id']) ?>" class="btn btn-sm btn-outline-primary">Editar</a>
+                            <div class="d-inline-flex gap-1">
+                                <a href="/admin/usuarios/editar/<?= e($u['id']) ?>" class="btn btn-sm btn-outline-primary">Editar</a>
+
+                                <?php if ($ehVoceMesmo || $ehContaGeral) { ?>
+                                    <button class="btn btn-sm btn-outline-danger" disabled
+                                            title="<?= $ehVoceMesmo ? 'Você não pode excluir o seu próprio usuário.' : 'A conta administradora geral não pode ser excluída.' ?>">
+                                        Excluir
+                                    </button>
+                                <?php } else { ?>
+                                    <form action="/admin/usuarios/excluir/<?= e($u['id']) ?>" method="POST" class="d-inline"
+                                          onsubmit="return confirm('Excluir este usuário? Não há como desfazer.')">
+                                        <?= csrf_field() ?>
+                                        <button class="btn btn-sm btn-outline-danger">Excluir</button>
+                                    </form>
+                                <?php } ?>
+                            </div>
                         </td>
                     </tr>
                     <?php } ?>

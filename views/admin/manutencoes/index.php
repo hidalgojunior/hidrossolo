@@ -101,7 +101,7 @@
                             <td class="text-end">
                                 <a href="/admin/manutencoes/editar/<?= e($m['id']) ?>" class="btn btn-sm btn-outline-primary">Editar</a>
                                 <form action="/admin/manutencoes/excluir/<?= e($m['id']) ?>" method="POST" class="d-inline" onsubmit="return confirm('Excluir esta manutenção?')">
-                                    <input type="hidden" name="_method" value="DELETE">
+                                    <?= csrf_field() ?>
                                     <button class="btn btn-sm btn-outline-danger">Excluir</button>
                                 </form>
                             </td>

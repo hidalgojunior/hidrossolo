@@ -68,6 +68,7 @@
                             <th>Valor</th>
                             <th>R$/L</th>
                             <th>KM</th>
+                            <th class="text-end">Ações</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -101,6 +102,13 @@
                             </td>
                             <td>R$ <?= e($a['liters'] > 0 ? number_format((float) $a['cost'] / (float) $a['liters'], 2, ',', '.') : '—') ?></td>
                             <td><?= e($a['km_at_refuel'] ? number_format((float) $a['km_at_refuel'], 0, ',', '.') . ' km' : '—') ?></td>
+                            <td class="text-end">
+                                <form action="/admin/abastecimentos/excluir/<?= e($a['id']) ?>" method="POST" class="d-inline"
+                                      onsubmit="return confirm('Excluir este abastecimento? As despesas extras ligadas a ele também serão apagadas.')">
+                                    <?= csrf_field() ?>
+                                    <button class="btn btn-sm btn-outline-danger">Excluir</button>
+                                </form>
+                            </td>
                         </tr>
                         <?php } ?>
                     </tbody>

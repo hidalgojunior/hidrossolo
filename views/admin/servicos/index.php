@@ -34,7 +34,7 @@
                             <td class="text-end">
                                 <a href="/admin/servicos/editar/<?= e($servico['id']) ?>" class="btn btn-sm btn-outline-primary">Editar</a>
                                 <form action="/admin/servicos/excluir/<?= e($servico['id']) ?>" method="POST" class="d-inline" onsubmit="return confirm('Excluir este serviço?')">
-                                    <input type="hidden" name="_method" value="DELETE">
+                                    <?= csrf_field() ?>
                                     <button class="btn btn-sm btn-outline-danger">Excluir</button>
                                 </form>
                             </td>

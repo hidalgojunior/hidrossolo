@@ -235,12 +235,6 @@ class NotificacoesController extends BaseController
 
     private function voltar(): void
     {
-        $destino = (string) ($_POST['redirect'] ?? '/admin/notificacoes');
-
-        if (!str_starts_with($destino, '/') || str_starts_with($destino, '//')) {
-            $destino = '/admin/notificacoes';
-        }
-
-        $this->redirect($destino);
+        $this->redirectInterno($_POST['redirect'] ?? null, '/admin/notificacoes');
     }
 }

@@ -86,7 +86,47 @@ $isEquipment = static fn(array $v): bool => ($v['category'] ?? 'vehicle') === 'e
                                 } ?>
                             </td>
                             <td class="text-end">
-                                <a href="/admin/frota/editar/<?= e($v['id']) ?>" class="btn btn-sm btn-outline-primary">Editar</a>
+                                <?php
+                                $bloqueado = ((int) ($v['fuel_count'] ?? 0) > 0)
+                                          || ((int) ($v['maint_count'] ?? 0) > 0);
+
+                                $perdas = [];
+                                if ((int) ($v['schedule_count'] ?? 0) > 0) {
+                                    $perdas[] = (int) $v['schedule_count'] . ' agendamento(s)';
+                                }
+                                if ((int) ($v['child_count'] ?? 0) > 0) {
+                                    $perdas[] = (int) $v['child_count'] . ' equipamento(s) que ficarão sem vínculo';
+                                }
+
+                                $confirmar = 'Excluir definitivamente? Não há como desfazer.';
+                                if ($perdas) {
+                                    $confirmar .= ' Também será afetado: ' . implode(', ', $perdas) . '.';
+                                }
+                                ?>
+                                <div class="d-inline-flex gap-1 flex-wrap justify-content-end">
+                                    <a href="/admin/frota/editar/<?= e($v['id']) ?>" class="btn btn-sm btn-outline-primary">Editar</a>
+
+                                    <form action="/admin/frota/status/<?= e($v['id']) ?>" method="POST" class="d-inline">
+                                        <?= csrf_field() ?>
+                                        <button class="btn btn-sm btn-outline-secondary"
+                                                title="<?= $v['status'] === 'inactive' ? 'Voltar a ficar ativo' : 'Tirar do uso sem perder o histórico' ?>">
+                                            <?= $v['status'] === 'inactive' ? 'Reativar' : 'Desativar' ?>
+                                        </button>
+                                    </form>
+
+                                    <?php if ($bloqueado) { ?>
+                                        <button class="btn btn-sm btn-outline-danger" disabled
+                                                title="Existem <?= (int) ($v['fuel_count'] ?? 0) ?> abastecimento(s) e <?= (int) ($v['maint_count'] ?? 0) ?> manutenção(ões) ligados. Use Desativar para não perder o histórico.">
+                                            Excluir
+                                        </button>
+                                    <?php } else { ?>
+                                        <form action="/admin/frota/excluir/<?= e($v['id']) ?>" method="POST" class="d-inline"
+                                              onsubmit="return confirm(<?= e(json_encode($confirmar, JSON_UNESCAPED_UNICODE)) ?>)">
+                                            <?= csrf_field() ?>
+                                            <button class="btn btn-sm btn-outline-danger">Excluir</button>
+                                        </form>
+                                    <?php } ?>
+                                </div>
                             </td>
                         </tr>
                         <?php } ?>
