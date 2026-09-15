@@ -38,7 +38,8 @@
                 </div>
                 <div class="col-md-3">
                     <label class="form-label">Data *</label>
-                    <input type="date" name="maintenance_date" class="form-control" required value="<?= e($manutencao['maintenance_date'] ?? date('Y-m-d')) ?>">
+                    <input type="text" name="maintenance_date" class="form-control" required data-date-br
+                           placeholder="dd/mm/aaaa" value="<?= e(data_iso_para_br($manutencao['maintenance_date'] ?? date('Y-m-d'))) ?>">
                 </div>
                 <div class="col-md-6">
                     <label class="form-label">O que foi feito? *</label>
@@ -52,7 +53,8 @@
                 </div>
                 <div class="col-md-3">
                     <label class="form-label">Próxima revisão</label>
-                    <input type="date" name="next_review_date" class="form-control" value="<?= e($manutencao['next_review_date'] ?? '') ?>">
+                    <input type="text" name="next_review_date" class="form-control" data-date-br
+                           placeholder="dd/mm/aaaa" value="<?= e(data_iso_para_br($manutencao['next_review_date'] ?? '')) ?>">
                     <div class="form-text">Gera avisos automáticos em 30, 15 e 7 dias.</div>
                 </div>
                 <div class="col-md-3">

@@ -50,13 +50,14 @@ $metaKeywords = $seo['keywords'] ?? 'poços artesianos, perfuração de poços, 
         "description": "<?= e($seo['description'] ?? 'Especialistas em perfuração de poços artesianos') ?>",
         "address": {
             "@type": "PostalAddress",
-            "streetAddress": "R. Assad Haddad, 584",
-            "addressLocality": "Marília",
-            "addressRegion": "SP",
-            "postalCode": "17519-700"
+            "streetAddress": "<?= e($company['address']) ?>",
+            "addressLocality": "<?= e($company['city']) ?>",
+            "addressRegion": "<?= e($company['state']) ?>",
+            "postalCode": "<?= e($company['zip']) ?>"
         },
-        "telephone": "(14) 3413-2437",
-        "email": "hidrossolo@hidrossolopocos.com.br"
+        "telephone": "<?= e($company['phone']) ?>",
+        "email": "<?= e($company['email']) ?>",
+        "sameAs": <?= json_encode(array_column(company_social_links($company), 'url'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG) ?: '[]' ?>
     }
     </script>
 
@@ -70,6 +71,28 @@ $metaKeywords = $seo['keywords'] ?? 'poços artesianos, perfuração de poços, 
 </head>
 <body>
     <?= $view->partial('components.header') ?>
+
+    <!-- Mensagens dos formulários públicos (contato, orçamento, newsletter).
+         Sem isto o visitante era redirecionado sem saber o que deu errado. -->
+    <?php if (isset($_SESSION['flash_success']) || isset($_SESSION['flash_error'])) { ?>
+    <div class="container mt-3">
+        <?php if (isset($_SESSION['flash_success'])) { ?>
+            <div class="alert alert-success alert-dismissible fade show">
+                <i class="bi bi-check-circle me-2"></i><?= e($_SESSION['flash_success']) ?>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            <?php unset($_SESSION['flash_success']) ?>
+        <?php } ?>
+
+        <?php if (isset($_SESSION['flash_error'])) { ?>
+            <div class="alert alert-danger alert-dismissible fade show">
+                <i class="bi bi-exclamation-circle me-2"></i><?= e($_SESSION['flash_error']) ?>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            <?php unset($_SESSION['flash_error']) ?>
+        <?php } ?>
+    </div>
+    <?php } ?>
 
     <main>
         <?= $view->getSection('content') ?>

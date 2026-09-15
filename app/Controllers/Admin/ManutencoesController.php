@@ -94,7 +94,7 @@ class ManutencoesController extends BaseController
         }
 
         $nextReview = trim((string) ($_POST['next_review_date'] ?? ''));
-        $nextReviewSql = ($nextReview !== '' && strtotime($nextReview)) ? date('Y-m-d', strtotime($nextReview)) : null;
+        $nextReviewSql = data_br_para_iso($nextReview);
         $km = (int) ($_POST['km_at_maintenance'] ?? 0);
 
         $id = $this->db()->insert('vehicle_maintenance', [
@@ -102,7 +102,7 @@ class ManutencoesController extends BaseController
             'type' => $data['type'],
             'service_category' => $serviceCategory,
             'workshop' => $_POST['workshop'] ?? '',
-            'maintenance_date' => $data['maintenance_date'],
+            'maintenance_date' => data_br_para_iso($data['maintenance_date']),
             'next_review_date' => $nextReviewSql,
             'km_at_maintenance' => $km,
             'cost' => (float)$cost,
@@ -184,7 +184,7 @@ class ManutencoesController extends BaseController
         }
 
         $nextReview = trim((string) ($_POST['next_review_date'] ?? ''));
-        $nextReviewSql = ($nextReview !== '' && strtotime($nextReview)) ? date('Y-m-d', strtotime($nextReview)) : null;
+        $nextReviewSql = data_br_para_iso($nextReview);
         $km = (int) ($_POST['km_at_maintenance'] ?? 0);
 
         $this->db()->update('vehicle_maintenance', [
@@ -192,7 +192,7 @@ class ManutencoesController extends BaseController
             'type' => $data['type'],
             'service_category' => $serviceCategory,
             'workshop' => $_POST['workshop'] ?? '',
-            'maintenance_date' => $data['maintenance_date'],
+            'maintenance_date' => data_br_para_iso($data['maintenance_date']),
             'next_review_date' => $nextReviewSql,
             'km_at_maintenance' => $km,
             'cost' => (float)$cost,

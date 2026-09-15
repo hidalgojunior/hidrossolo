@@ -45,8 +45,7 @@ $totalPages = (int) ceil($total / max(1, $perPage));
                     <small>JPG, PNG, GIF, WebP, SVG, PDF, DOC, XLS — até 10MB cada (vários ao mesmo tempo)</small>
                 </div>
                 <input type="file" name="files[]" multiple hidden id="pageFileInput"
-                       accept="image/*,.pdf,.doc,.docx,.xls,.xlsx">
-            </div>
+                       accept="image/*,.pdf,.doc,.docx,.xls,.xlsx">            </div>
             <div class="col-lg-5">
                 <label class="form-label" for="uploadCategory">Categoria</label>
                 <select name="category" id="uploadCategory" class="form-select mb-3">
@@ -65,6 +64,43 @@ $totalPages = (int) ceil($total / max(1, $perPage));
     </form>
 </div>
 
+<!-- Vídeo do YouTube -->
+<div class="media-upload-card mb-4">
+    <form action="/admin/midia/youtube" method="POST">
+        <?= csrf_field() ?>
+        <div class="row g-3 align-items-end">
+            <div class="col-lg-5">
+                <label class="form-label mb-1" for="youtubeUrl">
+                    <i class="bi bi-youtube text-danger me-1"></i>Adicionar vídeo do YouTube
+                </label>
+                <input type="text" name="youtube_url" id="youtubeUrl" class="form-control" required
+                       placeholder="https://www.youtube.com/watch?v=... | youtu.be/... | /shorts/...">
+                <small class="text-muted d-block mt-1">
+                    O vídeo continua no YouTube: não ocupa espaço nem banda da hospedagem.
+                </small>
+            </div>
+            <div class="col-lg-4">
+                <label class="form-label mb-1" for="youtubeTitle">Título (opcional)</label>
+                <input type="text" name="title" id="youtubeTitle" class="form-control" maxlength="255"
+                       placeholder="Ex: Perfuração de poço em Marília">
+            </div>
+            <div class="col-lg-2">
+                <label class="form-label mb-1" for="youtubeCategory">Categoria</label>
+                <select name="category" id="youtubeCategory" class="form-select">
+                    <?php foreach ($catLabels as $slug => $label) { ?>
+                        <option value="<?= e($slug) ?>" <?= e($slug === 'videos' ? 'selected' : '') ?>><?= e($label) ?></option>
+                    <?php } ?>
+                </select>
+            </div>
+            <div class="col-lg-1">
+                <button type="submit" class="btn btn-danger w-100" title="Adicionar vídeo à biblioteca">
+                    <i class="bi bi-plus-lg"></i>
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+
 <!-- Filtros -->
 <form method="GET" action="/admin/midia" class="media-filters">
     <input type="hidden" name="categoria" value="<?= e($categoria) ?>">
@@ -78,6 +114,7 @@ $totalPages = (int) ceil($total / max(1, $perPage));
     <div class="btn-group btn-group-sm" role="group" aria-label="Tipo">
         <a href="<?= e($qs(['type' => 'all', 'page' => null])) ?>" class="btn btn-sm <?= $type === 'all' ? 'btn-primary' : 'btn-outline-secondary' ?>">Todos</a>
         <a href="<?= e($qs(['type' => 'image', 'page' => null])) ?>" class="btn btn-sm <?= $type === 'image' ? 'btn-primary' : 'btn-outline-secondary' ?>">Imagens</a>
+        <a href="<?= e($qs(['type' => 'video', 'page' => null])) ?>" class="btn btn-sm <?= $type === 'video' ? 'btn-primary' : 'btn-outline-secondary' ?>"><i class="bi bi-youtube me-1"></i>Vídeos</a>
         <a href="<?= e($qs(['type' => 'document', 'page' => null])) ?>" class="btn btn-sm <?= $type === 'document' ? 'btn-primary' : 'btn-outline-secondary' ?>">Documentos</a>
     </div>
 </form>
@@ -109,20 +146,22 @@ $totalPages = (int) ceil($total / max(1, $perPage));
         <?php foreach ($midias as $m) { ?>
         <div class="media-card">
             <div class="media-card-thumb">
-                <?php if ($m['is_image']) { ?>
-                    <button type="button" class="media-thumb-open"
+                <?php if ($m['is_image'] || $m['is_video']) { ?>
+                    <button type="button" class="media-thumb-open <?= $m['is_video'] ? 'is-video' : '' ?>"
                             data-media-view
                             data-id="<?= e($m['id']) ?>"
                             data-url="<?= e($m['url']) ?>"
                             data-name="<?= e($m['name']) ?>"
                             data-alt="<?= e($m['alt_text']) ?>"
                             data-category="<?= e($catLabels[$m['category']] ?? $m['category']) ?>"
-                            data-size="<?= e($m['size_human']) ?>"
+                            data-size="<?= e($m['is_video'] ? 'YouTube' : $m['size_human']) ?>"
                             data-mime="<?= e($m['mime_type']) ?>"
                             data-date="<?= e(date('d/m/Y', strtotime($m['created_at'] ?: 'now'))) ?>"
-                            title="Clique para ampliar">
+                            data-video="<?= $m['is_video'] ? '1' : '0' ?>"
+                            data-embed="<?= e($m['embed_url']) ?>"
+                            title="<?= e($m['is_video'] ? 'Clique para assistir' : 'Clique para ampliar') ?>">
                         <img src="<?= e($m['thumb']) ?>" alt="<?= e($m['alt_text'] ?: $m['name']) ?>" loading="lazy">
-                        <span class="media-thumb-zoom"><i class="bi bi-arrows-fullscreen"></i></span>
+                        <span class="media-thumb-zoom"><i class="bi <?= $m['is_video'] ? 'bi-play-fill' : 'bi-arrows-fullscreen' ?>"></i></span>
                     </button>
                 <?php } else { ?>
                     <a href="<?= e($m['url']) ?>" target="_blank" rel="noopener" class="media-thumb-open" title="Abrir arquivo em nova aba">
@@ -155,6 +194,7 @@ $totalPages = (int) ceil($total / max(1, $perPage));
                         data-url="<?= e($m['url']) ?>"
                         data-thumb="<?= e($m['thumb']) ?>"
                         data-image="<?= e($m['is_image'] ? '1' : '0') ?>"
+                        data-video="<?= $m['is_video'] ? '1' : '0' ?>"
                         title="Editar">
                     <i class="bi bi-pencil"></i>
                 </button>
@@ -269,6 +309,9 @@ $totalPages = (int) ceil($total / max(1, $perPage));
     <div class="media-lightbox-stage" data-mlb-stage>
         <div class="media-lightbox-spinner" data-mlb-spinner><div class="spinner-border" role="status"></div></div>
         <img id="mlbImage" src="" alt="">
+        <iframe id="mlbVideo" src="" title="Player do vídeo do YouTube" hidden
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
     </div>
 
     <button type="button" class="media-lightbox-nav is-next" data-mlb-next aria-label="Próxima mídia">
@@ -356,7 +399,7 @@ document.querySelectorAll('[data-media-edit]').forEach(function (btn) {
         document.getElementById('mediaEditUrl').value = btn.dataset.url || '';
 
         var preview = document.getElementById('mediaEditPreview');
-        if (btn.dataset.image === '1') {
+        if (btn.dataset.image === '1' || btn.dataset.video === '1') {
             preview.src = btn.dataset.thumb;
             preview.style.display = 'inline-block';
         } else {
@@ -376,6 +419,7 @@ document.querySelectorAll('[data-media-edit]').forEach(function (btn) {
     if (!gatilhos.length || !box) return;
 
     var imagem = document.getElementById('mlbImage');
+    var player = document.getElementById('mlbVideo');
     var spinner = box.querySelector('[data-mlb-spinner]');
     var nome = document.getElementById('mlbName');
     var meta = document.getElementById('mlbMeta');
@@ -401,12 +445,48 @@ document.querySelectorAll('[data-media-edit]').forEach(function (btn) {
 
         var btn = gatilhos[atual];
         var url = atributo(btn, 'url');
+        var ehVideo = atributo(btn, 'video') === '1';
+        var embed = atributo(btn, 'embed');
 
         box.classList.remove('is-zoomed');
         botaoZoom.classList.remove('is-active');
         botaoZoom.querySelector('i').className = 'bi bi-zoom-in';
         estagio.scrollTop = 0;
         estagio.scrollLeft = 0;
+
+        nome.textContent = atributo(btn, 'name') || 'Mídia';
+        ligaOpen.href = url;
+        contador.textContent = 'Mídia ' + (atual + 1) + ' de ' + gatilhos.length;
+
+        var varias = gatilhos.length > 1;
+        btnPrev.hidden = !varias;
+        btnNext.hidden = !varias;
+
+        // Vídeo do YouTube: o player embutido substitui a imagem
+        if (ehVideo && embed) {
+            imagem.hidden = true;
+            imagem.removeAttribute('src');
+            spinner.hidden = true;
+            botaoZoom.hidden = true;
+            ligaDownload.hidden = true;
+
+            player.hidden = false;
+            player.src = embed;
+
+            var infoVideo = [];
+            if (atributo(btn, 'size')) { infoVideo.push(atributo(btn, 'size')); }
+            if (atributo(btn, 'category')) { infoVideo.push(atributo(btn, 'category')); }
+            if (atributo(btn, 'date')) { infoVideo.push(atributo(btn, 'date')); }
+
+            meta.textContent = infoVideo.join(' · ');
+            return;
+        }
+
+        player.hidden = true;
+        player.removeAttribute('src');
+        imagem.hidden = false;
+        botaoZoom.hidden = false;
+        ligaDownload.hidden = false;
 
         spinner.hidden = false;
         imagem.style.opacity = '0';
@@ -433,15 +513,6 @@ document.querySelectorAll('[data-media-edit]').forEach(function (btn) {
 
         imagem.src = url;
         imagem.alt = atributo(btn, 'alt') || atributo(btn, 'name');
-        nome.textContent = atributo(btn, 'name') || 'Mídia';
-        ligaOpen.href = url;
-        ligaDownload.href = url;
-
-        contador.textContent = 'Mídia ' + (atual + 1) + ' de ' + gatilhos.length;
-
-        var varias = gatilhos.length > 1;
-        btnPrev.hidden = !varias;
-        btnNext.hidden = !varias;
     }
 
     function alternarZoom() {
@@ -465,6 +536,8 @@ document.querySelectorAll('[data-media-edit]').forEach(function (btn) {
     function fechar() {
         box.hidden = true;
         imagem.removeAttribute('src');
+        player.hidden = true;
+        player.removeAttribute('src');
         document.body.style.overflow = overflowAnterior;
         document.removeEventListener('keydown', teclado);
 

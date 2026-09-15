@@ -39,7 +39,7 @@
                     <a href="/contato" class="btn btn-primary w-100 mb-2">
                         <i class="bi bi-envelope me-2"></i>Solicitar Orçamento
                     </a>
-                    <a href="https://wa.me/5514991234567" class="btn btn-success w-100" target="_blank">
+                    <a href="<?= e(company_whatsapp_link($company['whatsapp'] ?? '')) ?>" class="btn btn-success w-100" target="_blank" rel="noopener">
                         <i class="bi bi-whatsapp me-2"></i>WhatsApp
                     </a>
                 </div>

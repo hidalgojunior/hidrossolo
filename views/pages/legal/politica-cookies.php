@@ -183,8 +183,8 @@ $secoes = [
             <h2><span class="num">8</span> Contato</h2>
             <table class="legal-table">
                 <tbody>
-                    <tr><th style="width:34%">Encarregado (DPO)</th><td>privacidade@hidrossolo.com.br</td></tr>
-                    <tr><th>Telefone</th><td>(14) 3413-2437</td></tr>
+                    <tr><th style="width:34%">Encarregado (DPO)</th><td><?= e(lgpd_email()) ?></td></tr>
+                    <tr><th>Telefone</th><td><?= e($company['phone']) ?></td></tr>
                     <tr><th>Solicitações com protocolo</th><td><a href="/lgpd#solicitacao">Central LGPD</a></td></tr>
                 </tbody>
             </table>

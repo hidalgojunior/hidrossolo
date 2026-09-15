@@ -4,7 +4,7 @@
 <section class="page-hero">
     <div class="container">
         <h1>Fale Conosco</h1>
-        <p class="lead">Entre em contato e solicite seu orçamento</p>
+        <p class="lead"><?= e($company['form_text']) ?></p>
     </div>
 </section>
 
@@ -12,7 +12,7 @@
     <div class="container">
         <div class="row g-5">
             <div class="col-lg-7">
-                <h2 class="section-title">Envie sua Mensagem</h2>
+                <h2 class="section-title"><?= e($company['form_title']) ?></h2>
                 <form action="/contato/enviar" method="POST" class="mt-4">
                     <div class="row g-3">
                         <div class="col-md-6">
@@ -45,29 +45,42 @@
                 <div class="card p-4">
                     <h4>Informações de Contato</h4>
                     <hr>
+                    <?php $endereco = company_address_lines($company); ?>
+                    <?php if ($endereco !== []) { ?>
                     <p><i class="bi bi-geo-alt-fill text-primary me-2"></i><strong>Endereço:</strong><br>
-                    <?= e($config['address'] ?? 'R. Assad Haddad, 584') ?><br>
-                    <?= e($config['city'] ?? 'Marília') ?> - <?= e($config['state'] ?? 'SP') ?><br>
-                    CEP: <?= e($config['zip'] ?? '17519-700') ?></p>
+                    <a href="<?= e(company_maps_link($company)) ?>" target="_blank" rel="noopener noreferrer" title="Abrir no mapa"><?= implode('<br>', array_map('e', $endereco)) ?></a></p>
+                    <?php } ?>
 
-                    <p><i class="bi bi-telephone-fill text-primary me-2"></i><strong>Telefone:</strong><br>
-                    <?= e($config['phone'] ?? '(14) 3413-2437') ?></p>
+                    <?php $telefones = company_lines($company['phone'] ?? ''); ?>
+                    <?php if ($telefones !== []) { ?>
+                    <p><i class="bi bi-telephone-fill text-primary me-2"></i><strong>Telefone fixo:</strong><br>
+                    <?= implode('<br>', array_map(static fn (string $t): string => '<a href="' . e(company_tel_link($t)) . '">' . e($t) . '</a>', $telefones)) ?></p>
+                    <?php } ?>
 
+                    <?php if (($company['whatsapp'] ?? '') !== '') { ?>
                     <p><i class="bi bi-whatsapp text-success me-2"></i><strong>WhatsApp:</strong><br>
-                    <?= e($config['whatsapp'] ?? '(14) 99123-4567') ?></p>
+                    <a href="<?= e(company_whatsapp_link($company['whatsapp'])) ?>" target="_blank" rel="noopener noreferrer"><?= e($company['whatsapp']) ?></a></p>
+                    <?php } ?>
 
+                    <?php if (($company['email'] ?? '') !== '') { ?>
                     <p><i class="bi bi-envelope-fill text-primary me-2"></i><strong>E-mail:</strong><br>
-                    <?= e($config['email'] ?? 'hidrossolo@hidrossolopocos.com.br') ?></p>
+                    <a href="mailto:<?= e($company['email']) ?>"><?= e($company['email']) ?></a></p>
+                    <?php } ?>
 
+                    <?php $horario = company_lines($company['working_hours'] ?? ''); ?>
+                    <?php if ($horario !== []) { ?>
                     <hr>
                     <h5>Horário de Funcionamento</h5>
-                    <p>Segunda a Sexta: 08h às 18h<br>Sábado: 08h às 12h</p>
+                    <p><?= implode('<br>', array_map('e', $horario)) ?></p>
+                    <?php } ?>
                 </div>
 
-                <!-- Google Maps -->
+                <!-- Google Maps (busca pelo endereço real cadastrado) -->
                 <div class="mt-4 rounded-4 overflow-hidden shadow-sm">
-                    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3693.5!2d-49.95!3d-22.22!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMjLCsDEzJzEyLjAiUyA0OcKwNTcnMDAuMCJX!5e0!3m2!1spt-BR!2sbr!4v1234567890" 
-                            width="100%" height="250" style="border:0" allowfullscreen="" loading="lazy"></iframe>
+                    <iframe src="<?= e('https://www.google.com/maps?q=' . rawurlencode(implode(', ', $endereco)) . '&output=embed') ?>"
+                            width="100%" height="250" style="border:0" allowfullscreen="" loading="lazy"
+                            referrerpolicy="no-referrer-when-downgrade"
+                            title="Mapa com a localização da Hidrossolo"></iframe>
                 </div>
             </div>
         </div>

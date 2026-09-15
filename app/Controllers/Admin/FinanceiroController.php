@@ -155,9 +155,7 @@ class FinanceiroController extends BaseController
         $dados = match ($acao) {
             'baixar' => [
                 'status' => 'paid',
-                'paid_at' => trim((string) ($_POST['paid_at'] ?? '')) !== ''
-                    ? date('Y-m-d', (int) strtotime((string) $_POST['paid_at']))
-                    : date('Y-m-d'),
+                'paid_at' => data_br_para_iso($_POST['paid_at'] ?? null) ?? date('Y-m-d'),
                 'payment_method' => ((string) ($_POST['payment_method'] ?? '')) ?: null,
             ],
             'cancelar' => ['status' => 'cancelled'],
@@ -444,8 +442,8 @@ class FinanceiroController extends BaseController
             $erros[] = 'Informe um valor maior que zero.';
         }
 
-        if ($vencimento === '' || !strtotime($vencimento)) {
-            $erros[] = 'Informe uma data de vencimento válida.';
+        if (data_br_para_iso($vencimento) === null) {
+            $erros[] = 'Informe uma data de vencimento válida (dd/mm/aaaa).';
         }
 
         if ($erros !== []) {
@@ -469,8 +467,8 @@ class FinanceiroController extends BaseController
             'category' => $categoria,
             'description' => mb_substr($descricao, 0, 255),
             'amount' => $valor,
-            'due_date' => date('Y-m-d', (int) strtotime($vencimento)),
-            'paid_at' => $pago !== '' && strtotime($pago) ? date('Y-m-d', (int) strtotime($pago)) : null,
+            'due_date' => data_br_para_iso($vencimento),
+            'paid_at' => data_br_para_iso($pago),
             'paid_amount' => $this->decimal($_POST['paid_amount'] ?? null),
             'payment_method' => $forma !== '' ? $forma : null,
             'party' => mb_substr(trim((string) ($_POST['party'] ?? '')), 0, 160) ?: null,
@@ -478,7 +476,7 @@ class FinanceiroController extends BaseController
             'vehicle_id' => ((int) ($_POST['vehicle_id'] ?? 0)) > 0 ? (int) $_POST['vehicle_id'] : null,
             'recurrence' => $recorrencia,
             'notes' => trim((string) ($_POST['notes'] ?? '')) ?: null,
-            'status' => !empty($_POST['paid_at']) && strtotime((string) $_POST['paid_at']) ? 'paid' : 'pending',
+            'status' => data_br_para_iso($_POST['paid_at'] ?? null) !== null ? 'paid' : 'pending',
         ];
     }
 

@@ -49,11 +49,11 @@ $tiposLabel = ['preventive' => 'Preventiva', 'corrective' => 'Corretiva'];
         <div class="row g-3 align-items-end">
             <div class="col-6 col-md-3">
                 <label class="form-label" for="de">De</label>
-                <input type="date" name="de" id="de" class="form-control" value="<?= e($de) ?>">
+                <input type="text" name="de" id="de" class="form-control" data-date-br placeholder="dd/mm/aaaa" value="<?= e(data_iso_para_br($de)) ?>">
             </div>
             <div class="col-6 col-md-3">
                 <label class="form-label" for="ate">Até</label>
-                <input type="date" name="ate" id="ate" class="form-control" value="<?= e($ate) ?>">
+                <input type="text" name="ate" id="ate" class="form-control" data-date-br placeholder="dd/mm/aaaa" value="<?= e(data_iso_para_br($ate)) ?>">
             </div>
             <div class="col-12 col-md-3">
                 <label class="form-label" for="categoria">Tipo</label>

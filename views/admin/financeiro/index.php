@@ -303,7 +303,8 @@ $situacaoBadge = static function (array $l): array {
                 <div class="row g-3">
                     <div class="col-6">
                         <label class="form-label">Data</label>
-                        <input type="date" name="paid_at" class="form-control" value="<?= e(date('Y-m-d')) ?>">
+                        <input type="text" name="paid_at" class="form-control" data-date-br
+                               placeholder="dd/mm/aaaa" value="<?= e(data_iso_para_br(date('Y-m-d'))) ?>">
                     </div>
                     <div class="col-6">
                         <label class="form-label">Forma</label>

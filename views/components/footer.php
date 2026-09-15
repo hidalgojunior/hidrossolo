@@ -8,11 +8,17 @@ $year = date('Y');
             <div class="col-lg-4">
                 <h5><i class="bi bi-droplet me-2"></i>Hidrossolo</h5>
                 <p>Especialistas em perfuração de poços artesianos, licenciamento e manutenção. Atendendo Marília e região com excelência desde 2005.</p>
-                <div class="d-flex gap-3 mt-3">
-                    <a href="#" aria-label="Facebook"><i class="bi bi-facebook fs-5"></i></a>
-                    <a href="#" aria-label="Instagram"><i class="bi bi-instagram fs-5"></i></a>
-                    <a href="#" aria-label="LinkedIn"><i class="bi bi-linkedin fs-5"></i></a>
+                <?php $redes = company_social_links($company); ?>
+                <?php if ($redes !== []) { ?>
+                <div class="d-flex flex-wrap gap-3 mt-3">
+                    <?php foreach ($redes as $rede) { ?>
+                    <a href="<?= e($rede['url']) ?>" target="_blank" rel="noopener noreferrer"
+                       aria-label="<?= e($rede['nome']) ?>" title="<?= e($rede['nome']) ?>">
+                        <i class="bi <?= e($rede['icone']) ?> fs-5"></i>
+                    </a>
+                    <?php } ?>
                 </div>
+                <?php } ?>
             </div>
 
             <div class="col-lg-2">
@@ -39,9 +45,24 @@ $year = date('Y');
 
             <div class="col-lg-3">
                 <h5>Contato</h5>
-                <p><i class="bi bi-geo-alt me-2"></i>R. Assad Haddad, 584<br>Parque das Indústrias<br>Marília - SP</p>
-                <p><i class="bi bi-telephone me-2"></i>(14) 3413-2437</p>
-                <p><i class="bi bi-envelope me-2"></i>hidrossolo@hidrossolopocos.com.br</p>
+                <?php $endereco = company_address_lines($company); ?>
+                <?php if ($endereco !== []) { ?>
+                <p><i class="bi bi-geo-alt me-2"></i><a href="<?= e(company_maps_link($company)) ?>" target="_blank" rel="noopener noreferrer" title="Abrir no mapa"><?= implode('<br>', array_map('e', $endereco)) ?></a></p>
+                <?php } ?>
+                <?php $telefones = company_lines($company['phone'] ?? ''); ?>
+                <?php if ($telefones !== []) { ?>
+                <p><i class="bi bi-telephone me-2"></i><?= implode('<br>', array_map(static fn (string $t): string => '<a href="' . e(company_tel_link($t)) . '">' . e($t) . '</a>', $telefones)) ?></p>
+                <?php } ?>
+                <?php if (($company['whatsapp'] ?? '') !== '') { ?>
+                <p><i class="bi bi-whatsapp me-2"></i><a href="<?= e(company_whatsapp_link($company['whatsapp'])) ?>" target="_blank" rel="noopener noreferrer"><?= e($company['whatsapp']) ?></a></p>
+                <?php } ?>
+                <?php if (($company['email'] ?? '') !== '') { ?>
+                <p><i class="bi bi-envelope me-2"></i><a href="mailto:<?= e($company['email']) ?>"><?= e($company['email']) ?></a></p>
+                <?php } ?>
+                <?php $horario = company_lines($company['working_hours'] ?? ''); ?>
+                <?php if ($horario !== []) { ?>
+                <p><i class="bi bi-clock me-2"></i><?= implode('<br>', array_map('e', $horario)) ?></p>
+                <?php } ?>
             </div>
         </div>
 
@@ -58,7 +79,13 @@ $year = date('Y');
         </div>
 
         <div class="footer-bottom">
-            <p class="mb-0">&copy; <?= e($year) ?> Hidrossolo Poços Artesianos. Todos os direitos reservados.</p>
+            <div class="footer-bottom-credits">
+                <p class="mb-0">&copy; <?= e($year) ?> Hidrossolo Poços Artesianos. Todos os direitos reservados.</p>
+                <p class="mb-0 footer-bottom-dev">
+                    Desenvolvido por
+                    <a href="mailto:hidalgojunior@gmail.com" title="Falar com o desenvolvedor">Arnaldo Martins Hidalgo Junior</a>
+                </p>
+            </div>
             <p class="mb-0 footer-bottom-links">
                 <a href="/politica-de-privacidade">Privacidade</a>
                 <span class="footer-divider" aria-hidden="true">•</span>

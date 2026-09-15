@@ -15,6 +15,7 @@ use App\Controllers\Admin\UsuariosController;
 use App\Controllers\Admin\MidiaController;
 use App\Controllers\Admin\MenusController;
 use App\Controllers\Admin\ContatosController;
+use App\Controllers\Admin\OrcamentosController;
 use App\Controllers\Admin\ManutencoesController;
 use App\Controllers\Admin\AbastecimentosController;
 use App\Controllers\Admin\SEOController;
@@ -105,6 +106,12 @@ $router->group(['prefix' => 'admin', 'middleware' => [AuthMiddleware::class, Csr
     $router->get('/contatos', [ContatosController::class, 'index']);
     $router->get('/contatos/{id}', [ContatosController::class, 'show']);
 
+    // Orçamentos (formulário público /orcamento)
+    $router->get('/orcamentos', [OrcamentosController::class, 'index']);
+    $router->post('/orcamentos/status/{id}', [OrcamentosController::class, 'status']);
+    $router->post('/orcamentos/excluir/{id}', [OrcamentosController::class, 'delete']);
+    $router->get('/orcamentos/{id}', [OrcamentosController::class, 'show']);
+
     // Auditoria
     $router->get('/auditoria', [\App\Controllers\Admin\AuditoriaController::class, 'index']);
 
@@ -187,6 +194,7 @@ $router->group(['prefix' => 'admin', 'middleware' => [AuthMiddleware::class, Csr
     $router->get('/midia', [MidiaController::class, 'index']);
     $router->get('/midia/list', [MidiaController::class, 'list']);
     $router->post('/midia/upload', [MidiaController::class, 'upload']);
+    $router->post('/midia/youtube', [MidiaController::class, 'youtube']);
     $router->post('/midia/scan', [MidiaController::class, 'scan']);
     $router->post('/midia/update/{id}', [MidiaController::class, 'update']);
     $router->post('/midia/delete/{id}', [MidiaController::class, 'delete']);

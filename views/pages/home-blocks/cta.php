@@ -11,7 +11,7 @@
                 <a href="<?= e($ctaSection['link_url'] ?? '/orcamento') ?>" class="btn btn-light btn-lg">
                     <i class="bi bi-send"></i> <?= e($ctaSection['content'] ?? 'Solicitar Orçamento') ?>
                 </a>
-                <a href="https://wa.me/5514991234567" target="_blank" rel="noopener" class="btn btn-outline-light btn-lg">
+                <a href="<?= e(company_whatsapp_link($company['whatsapp'] ?? '')) ?>" target="_blank" rel="noopener" class="btn btn-outline-light btn-lg">
                     <i class="bi bi-whatsapp"></i> WhatsApp
                 </a>
             </div>

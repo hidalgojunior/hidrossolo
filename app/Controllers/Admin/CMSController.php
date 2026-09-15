@@ -499,7 +499,11 @@ class CMSController extends BaseController
     public function updateContato(): void
     {
         $db = $this->db();
-        $fields = ['address', 'phone', 'whatsapp', 'email', 'working_hours', 'form_title', 'form_text', 'site_logo'];
+        $fields = [
+            'address', 'phone', 'whatsapp', 'email', 'working_hours', 'form_title', 'form_text', 'site_logo',
+            'social_instagram', 'social_facebook', 'social_youtube', 'social_linkedin', 'social_tiktok',
+            'social_x', 'social_outras',
+        ];
 
         foreach ($fields as $field) {
             if (isset($_POST[$field])) {

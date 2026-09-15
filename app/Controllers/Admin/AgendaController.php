@@ -145,8 +145,8 @@ class AgendaController extends BaseController
         if ($titulo === '') {
             $erros[] = 'Informe o título do compromisso.';
         }
-        if ($data === '' || !strtotime($data)) {
-            $erros[] = 'Informe uma data válida.';
+        if (data_br_para_iso($data) === null) {
+            $erros[] = 'Informe uma data válida (dd/mm/aaaa).';
         }
         if (!in_array($tipo, self::TIPOS, true)) {
             $tipo = 'maintenance';
@@ -170,7 +170,7 @@ class AgendaController extends BaseController
             $this->redirect('/admin/agenda?mes=' . (int) date('n', strtotime($data ?: 'now')) . '&ano=' . (int) date('Y', strtotime($data ?: 'now')));
         }
 
-        $dataSql = date('Y-m-d', strtotime($data));
+        $dataSql = data_br_para_iso($data);
 
         if ($lancamento !== 'schedule') {
             $categoria = (string) ($_POST['category'] ?? '');

@@ -83,8 +83,9 @@ $categoriaAtual = (string) ($lancamento['category'] ?? '');
 
                 <div class="col-md-4">
                     <label class="form-label">Vencimento *</label>
-                    <input type="date" name="due_date" class="form-control" required
-                           value="<?= e($lancamento['due_date'] ?? $dataSugerida) ?>">
+                    <input type="text" name="due_date" class="form-control" required data-date-br
+                           placeholder="dd/mm/aaaa"
+                           value="<?= e(data_iso_para_br($lancamento['due_date'] ?? $dataSugerida)) ?>">
                 </div>
 
                 <div class="col-md-4">
@@ -144,7 +145,8 @@ $categoriaAtual = (string) ($lancamento['category'] ?? '');
 
                 <div class="col-md-4">
                     <label class="form-label">Já está pago / recebido?</label>
-                    <input type="date" name="paid_at" class="form-control" value="<?= e($lancamento['paid_at'] ?? '') ?>">
+                    <input type="text" name="paid_at" class="form-control" data-date-br
+                           placeholder="dd/mm/aaaa" value="<?= e(data_iso_para_br($lancamento['paid_at'] ?? '')) ?>">
                     <div class="form-text">Deixe vazio se ainda está pendente.</div>
                 </div>
 
@@ -206,8 +208,14 @@ $categoriaAtual = (string) ($lancamento['category'] ?? '');
     var unidades = { weekly: 'semana', monthly: 'mês', quarterly: 'trimestre', yearly: 'ano' };
     var maximo = 120;
 
-    function paraData(iso) {
-        var partes = String(iso).split('-');
+    function paraData(valor) {
+        var br = String(valor).match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+
+        if (br) {
+            return new Date(Number(br[3]), Number(br[2]) - 1, Number(br[1]));
+        }
+
+        var partes = String(valor).split('-');
 
         return new Date(Number(partes[0]), Number(partes[1]) - 1, Number(partes[2]));
     }

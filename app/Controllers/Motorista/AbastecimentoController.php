@@ -82,8 +82,8 @@ class AbastecimentoController extends BaseController
         if (!in_array($vehicleId, $ids, true)) {
             $errors[] = 'Selecione um veículo/equipamento válido.';
         }
-        if ($fuelDate === '' || !strtotime($fuelDate)) {
-            $errors[] = 'Informe uma data válida.';
+        if (data_br_para_iso($fuelDate) === null) {
+            $errors[] = 'Informe uma data válida (dd/mm/aaaa).';
         }
         if ($liters === null || $liters <= 0) {
             $errors[] = 'Informe a quantidade de litros.';
@@ -100,7 +100,7 @@ class AbastecimentoController extends BaseController
 
         $id = $this->db()->insert('vehicle_fuel', [
             'vehicle_id' => $vehicleId,
-            'fuel_date' => date('Y-m-d', strtotime($fuelDate)),
+            'fuel_date' => data_br_para_iso($fuelDate),
             'liters' => $liters,
             'cost' => $cost,
             'km_at_refuel' => $km,

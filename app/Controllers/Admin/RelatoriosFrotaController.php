@@ -373,14 +373,12 @@ class RelatoriosFrotaController extends BaseController
         ];
     }
 
+    /**
+     * Aceita dd/mm/aaaa (máscara dos formulários) e aaaa-mm-dd.
+     * Devolve sempre aaaa-mm-dd, o formato do banco.
+     */
     private function validDate(mixed $value): ?string
     {
-        $value = trim((string) ($value ?? ''));
-
-        if ($value === '' || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $value)) {
-            return null;
-        }
-
-        return strtotime($value) ? $value : null;
+        return data_br_para_iso($value);
     }
 }

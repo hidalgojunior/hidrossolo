@@ -26,7 +26,14 @@
                 </select>
             </div>
             <div class="col-md-6"><label class="form-label">Endereço do Serviço</label><input type="text" name="address" class="form-control" placeholder="Rua, número, cidade"></div>
-            <div class="col-md-6"><label class="form-label">Data Desejada</label><input type="date" name="preferred_date" class="form-control"></div>
+            <div class="col-md-6">
+                <label class="form-label" for="preferredDate">Data Desejada</label>
+                <input type="text" name="preferred_date" id="preferredDate" class="form-control"
+                       placeholder="dd/mm/aaaa" maxlength="10" inputmode="numeric"
+                       pattern="\d{2}/\d{2}/\d{4}" title="Use o formato dd/mm/aaaa"
+                       data-date-br value="<?= e($_SESSION['old_input']['preferred_date'] ?? '') ?>">
+                <small class="text-muted">Formato: dd/mm/aaaa</small>
+            </div>
             <div class="col-12"><label class="form-label">Descreva o serviço *</label><textarea name="description" class="form-control" rows="4" required placeholder="Descreva o que você precisa..."><?= e($_SESSION['old_input']['description'] ?? '') ?></textarea></div>
             <div class="col-12"><button type="submit" class="btn btn-primary btn-lg">Enviar Solicitação</button></div>
         </div>

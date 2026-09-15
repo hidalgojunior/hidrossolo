@@ -59,6 +59,11 @@ abstract class BaseController
 
     protected function config(string $key = null): mixed
     {
+        // 'company' passa pelo resolvedor único (site_settings > config > padrão)
+        if ($key === 'company') {
+            return App::getInstance()->companyInfo();
+        }
+
         return App::getInstance()->getConfig($key);
     }
 

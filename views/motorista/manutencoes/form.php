@@ -87,8 +87,9 @@ $categoriaOld = (string) ($old['service_category'] ?? 'revision');
         </div>
         <div class="col-6">
             <label class="form-label" for="maintenance_date">Data *</label>
-            <input type="date" name="maintenance_date" id="maintenance_date" class="form-control" required
-                   value="<?= e($old['maintenance_date'] ?? date('Y-m-d')) ?>">
+            <input type="text" name="maintenance_date" id="maintenance_date" class="form-control" required data-date-br
+                   placeholder="dd/mm/aaaa"
+                   value="<?= e(data_valor_br($old['maintenance_date'] ?? date('Y-m-d'))) ?>">
         </div>
 
         <div class="col-12">
@@ -115,8 +116,9 @@ $categoriaOld = (string) ($old['service_category'] ?? 'revision');
         </div>
         <div class="col-6">
             <label class="form-label" for="next_review_date">Próxima revisão</label>
-            <input type="date" name="next_review_date" id="next_review_date" class="form-control"
-                   value="<?= e($old['next_review_date'] ?? '') ?>">
+            <input type="text" name="next_review_date" id="next_review_date" class="form-control" data-date-br
+                   placeholder="dd/mm/aaaa"
+                   value="<?= e(data_valor_br($old['next_review_date'] ?? '')) ?>">
             <small class="text-muted">Gera avisos automáticos</small>
         </div>
 

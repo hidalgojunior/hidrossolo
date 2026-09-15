@@ -77,10 +77,10 @@ $secoes = [
                 <tbody>
                     <tr><th style="width:34%">Razão social</th><td>Hidrossolo Poços Artesianos</td></tr>
                     <tr><th>CNPJ</th><td>(<em>a informar no cadastro oficial da empresa</em>)</td></tr>
-                    <tr><th>Endereço</th><td>R. Assad Haddad, 584 — Parque das Indústrias, Marília/SP — CEP 17519-700</td></tr>
-                    <tr><th>Telefone</th><td>(14) 3413-2437</td></tr>
-                    <tr><th>E-mail de privacidade</th><td>privacidade@hidrossolo.com.br</td></tr>
-                    <tr><th>Encarregado (DPO)</th><td>privacidade@hidrossolo.com.br</td></tr>
+                    <tr><th>Endereço</th><td><?= e(implode(' — ', company_address_lines($company))) ?></td></tr>
+                    <tr><th>Telefone</th><td><?= e($company['phone']) ?></td></tr>
+                    <tr><th>E-mail de privacidade</th><td><?= e(lgpd_email()) ?></td></tr>
+                    <tr><th>Encarregado (DPO)</th><td><?= e(lgpd_email()) ?></td></tr>
                 </tbody>
             </table>
             <div class="legal-callout">
@@ -265,7 +265,7 @@ $secoes = [
             </div>
             <p>
                 Para exercer qualquer direito, use a <a href="/lgpd#solicitacao">Central LGPD</a> ou escreva para
-                <strong>privacidade@hidrossolo.com.br</strong>. Responderemos em até <strong>15 dias</strong>,
+                <strong><?= e(lgpd_email()) ?></strong>. Responderemos em até <strong>15 dias</strong>,
                 podendo solicitar comprovação de identidade para proteger os seus próprios dados.
             </p>
         </section>
@@ -322,9 +322,9 @@ $secoes = [
             <p>Para qualquer assunto relacionado a dados pessoais:</p>
             <table class="legal-table">
                 <tbody>
-                    <tr><th style="width:34%">Encarregado (DPO)</th><td>privacidade@hidrossolo.com.br</td></tr>
-                    <tr><th>Telefone</th><td>(14) 3413-2437</td></tr>
-                    <tr><th>Endereço</th><td>R. Assad Haddad, 584 — Parque das Indústrias, Marília/SP — CEP 17519-700</td></tr>
+                    <tr><th style="width:34%">Encarregado (DPO)</th><td><?= e(lgpd_email()) ?></td></tr>
+                    <tr><th>Telefone</th><td><?= e($company['phone']) ?></td></tr>
+                    <tr><th>Endereço</th><td><?= e(implode(' — ', company_address_lines($company))) ?></td></tr>
                     <tr><th>Solicitações com protocolo</th><td><a href="/lgpd#solicitacao">Central LGPD</a></td></tr>
                 </tbody>
             </table>

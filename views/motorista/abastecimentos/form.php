@@ -52,8 +52,9 @@ $extrasOld = is_array($old['extras'] ?? null) ? $old['extras'] : [];
     <div class="row g-3">
         <div class="col-6">
             <label class="form-label" for="fuel_date">Data *</label>
-            <input type="date" name="fuel_date" id="fuel_date" class="form-control" required
-                   value="<?= e($old['fuel_date'] ?? date('Y-m-d')) ?>">
+            <input type="text" name="fuel_date" id="fuel_date" class="form-control" required data-date-br
+                   placeholder="dd/mm/aaaa"
+                   value="<?= e(data_valor_br($old['fuel_date'] ?? date('Y-m-d'))) ?>">
         </div>
         <div class="col-6">
             <label class="form-label" for="liters">Litros *</label>

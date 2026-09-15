@@ -128,7 +128,7 @@ $secoes = [
                 <div>
                     <strong>Alerta contra phishing:</strong> a Hidrossolo <strong>nunca</strong> solicita senha,
                     código de verificação ou pagamento por e-mail, SMS ou WhatsApp. Confirme sempre pelo telefone
-                    oficial <strong>(14) 3413-2437</strong> antes de qualquer pagamento.
+                    oficial <strong><?= e($company['phone']) ?></strong> antes de qualquer pagamento.
                 </div>
             </div>
         </section>
@@ -163,10 +163,10 @@ $secoes = [
             <h2><span class="num">11</span> Contato</h2>
             <table class="legal-table">
                 <tbody>
-                    <tr><th style="width:34%">Empresa</th><td>Hidrossolo Poços Artesianos</td></tr>
-                    <tr><th>Endereço</th><td>R. Assad Haddad, 584 — Parque das Indústrias, Marília/SP — CEP 17519-700</td></tr>
-                    <tr><th>Telefone</th><td>(14) 3413-2437</td></tr>
-                    <tr><th>E-mail</th><td>hidrossolo@hidrossolopocos.com.br</td></tr>
+                    <tr><th style="width:34%">Empresa</th><td><?= e($company['name']) ?></td></tr>
+                    <tr><th>Endereço</th><td><?= e(implode(' — ', company_address_lines($company))) ?></td></tr>
+                    <tr><th>Telefone</th><td><?= e($company['phone']) ?></td></tr>
+                    <tr><th>E-mail</th><td><?= e($company['email']) ?></td></tr>
                 </tbody>
             </table>
         </section>

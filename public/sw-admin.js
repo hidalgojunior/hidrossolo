@@ -11,7 +11,7 @@
    ========================================================================= */
 'use strict';
 
-var CACHE = 'hidrossolo-admin-v2';
+var CACHE = 'hidrossolo-admin-v3';
 var OFFLINE_URL = '/offline.html';
 
 var PRECACHE = [

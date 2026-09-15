@@ -78,7 +78,86 @@ class App
         if ($key === null) {
             return $this->config;
         }
-        return $this->config[$key] ?? null;
+
+        if (array_key_exists($key, $this->config)) {
+            return $this->config[$key];
+        }
+
+        // Permite acessar chaves internas de um arquivo de configuração
+        // (ex.: 'company', que vive dentro de config/app.php).
+        foreach ($this->config as $fileConfig) {
+            if (is_array($fileConfig) && array_key_exists($key, $fileConfig)) {
+                return $fileConfig[$key];
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Dados institucionais de contato exibidos no site.
+     *
+     * Fonte única de verdade (na ordem de prioridade):
+     *   1. tabela site_settings, grupo 'contato' (o que o admin salva em
+     *      Admin -> CMS -> Contato);
+     *   2. config/app.php (chave 'company');
+     *   3. valores padrão abaixo.
+     *
+     * A página de contato, o rodapé e o JSON-LD consomem este mesmo array
+     * para nunca divergirem entre si.
+     */
+    public function companyInfo(): array
+    {
+        $info = [
+            'name'          => 'Hidrossolo Poços Artesianos',
+            'address'       => 'R. Assad Haddad, 584 - Parque das Indústrias',
+            'city'          => 'Marília',
+            'state'         => 'SP',
+            'zip'           => '17519-700',
+            'phone'         => '(14) 3413-2437',
+            'whatsapp'      => '(14) 99123-4567',
+            'email'         => 'hidrossolo@hidrossolopocos.com.br',
+            'working_hours' => 'Seg a Sex: 08h às 18h | Sáb: 08h às 12h',
+            'form_title'    => 'Envie sua Mensagem',
+            'form_text'     => 'Entre em contato e solicite seu orçamento',
+
+            // Redes sociais (Admin -> CMS -> Contato). Vazio = não exibido.
+            'social_instagram' => '',
+            'social_facebook'  => '',
+            'social_youtube'   => '',
+            'social_linkedin'  => '',
+            'social_tiktok'    => '',
+            'social_x'         => '',
+            'social_outras'    => '',
+        ];
+
+        $arquivo = $this->config['app']['company'] ?? null;
+        if (is_array($arquivo)) {
+            foreach ($arquivo as $chave => $valor) {
+                if (is_scalar($valor) && trim((string) $valor) !== '') {
+                    $info[$chave] = (string) $valor;
+                }
+            }
+        }
+
+        try {
+            $settings = $this->db->fetchAll(
+                "SELECT `key`, `value` FROM site_settings WHERE `group` = 'contato'"
+            );
+
+            foreach ($settings as $setting) {
+                $chave = (string) ($setting['key'] ?? '');
+                $valor = trim((string) ($setting['value'] ?? ''));
+
+                if ($valor !== '' && array_key_exists($chave, $info)) {
+                    $info[$chave] = $valor;
+                }
+            }
+        } catch (\Throwable) {
+            // Banco indisponível: mantém os valores do arquivo de configuração.
+        }
+
+        return $info;
     }
 
     private function loadConfig(): void
@@ -97,6 +176,18 @@ class App
         View::share('app_env', $_ENV['APP_ENV'] ?? 'production');
         View::share('csrf_token', CsrfMiddleware::token());
         View::share('csrf_field', CsrfMiddleware::field());
+
+        // Dados de contato (fonte única para contato, rodapé e JSON-LD)
+        View::share('company', $this->companyInfo());
+
+        // E-mail do encarregado de dados (Admin -> CMS -> LGPD).
+        // O campo existia no painel mas as páginas legais ignoravam.
+        try {
+            $lgpdEmail = $this->db->fetch("SELECT `value` FROM site_settings WHERE `key` = 'lgpd_contact_email'");
+            View::share('lgpd_email', trim((string) ($lgpdEmail['value'] ?? '')));
+        } catch (\Throwable) {
+            View::share('lgpd_email', '');
+        }
 
         // Logo configurável (busca do site_settings ou usa default)
         try {

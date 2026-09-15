@@ -161,6 +161,55 @@
     });
 
     /* ---------------------------------------------------------------------
+     * Campos de data no padrao brasileiro (dd/mm/aaaa)
+     *
+     * O <input type="date"> nativo e exibido no formato do idioma do
+     * navegador — em navegador configurado em ingles mostra mm/dd/yyyy, sem
+     * que a pagina possa interferir. Por isso os campos de data usam texto
+     * com mascara dd/mm/aaaa (atributo data-date-br).
+     * ------------------------------------------------------------------- */
+    function mascaraDataBr(valor) {
+        var texto = String(valor).trim();
+
+        // Colagem de data no formato do banco (aaaa-mm-dd).
+        var iso = texto.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+        if (iso) {
+            return iso[3] + '/' + iso[2] + '/' + iso[1];
+        }
+
+        var digitos = texto.replace(/\D/g, '').slice(0, 8);
+
+        if (digitos.length > 4) {
+            return digitos.slice(0, 2) + '/' + digitos.slice(2, 4) + '/' + digitos.slice(4);
+        }
+        if (digitos.length > 2) {
+            return digitos.slice(0, 2) + '/' + digitos.slice(2);
+        }
+
+        return digitos;
+    }
+
+    document.querySelectorAll('[data-date-br]').forEach(function (campo) {
+        campo.setAttribute('maxlength', '10');
+        campo.setAttribute('inputmode', 'numeric');
+        campo.setAttribute('autocomplete', 'off');
+
+        campo.addEventListener('input', function () {
+            var noFim = campo.selectionStart === campo.value.length;
+
+            campo.value = mascaraDataBr(campo.value);
+
+            if (noFim) {
+                campo.setSelectionRange(campo.value.length, campo.value.length);
+            }
+        });
+
+        campo.addEventListener('blur', function () {
+            campo.value = mascaraDataBr(campo.value);
+        });
+    });
+
+    /* ---------------------------------------------------------------------
      * Navbar: sombra ao rolar
      * ------------------------------------------------------------------- */
     var navbar = document.querySelector('.navbar.fixed-top');

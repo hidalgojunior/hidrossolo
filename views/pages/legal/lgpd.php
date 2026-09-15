@@ -54,7 +54,7 @@ unset($_SESSION['old_input']);
             <div class="legal-callout legal-ok">
                 <i class="bi bi-shield-check"></i>
                 <div>
-                    <strong>Encarregado de Dados (DPO):</strong> privacidade@hidrossolo.com.br —
+                    <strong>Encarregado de Dados (DPO):</strong> <?= e(lgpd_email()) ?> —
                     canal oficial para qualquer assunto de privacidade.
                 </div>
             </div>
@@ -230,10 +230,10 @@ unset($_SESSION['old_input']);
             <h2><span class="num">7</span> Canais de contato</h2>
             <table class="legal-table">
                 <tbody>
-                    <tr><th style="width:34%">Encarregado (DPO)</th><td>privacidade@hidrossolo.com.br</td></tr>
-                    <tr><th>Telefone</th><td>(14) 3413-2437</td></tr>
-                    <tr><th>WhatsApp</th><td>(14) 99123-4567</td></tr>
-                    <tr><th>Endereço</th><td>R. Assad Haddad, 584 — Parque das Indústrias, Marília/SP — CEP 17519-700</td></tr>
+                    <tr><th style="width:34%">Encarregado (DPO)</th><td><?= e(lgpd_email()) ?></td></tr>
+                    <tr><th>Telefone</th><td><?= e($company['phone']) ?></td></tr>
+                    <tr><th>WhatsApp</th><td><?= e($company['whatsapp']) ?></td></tr>
+                    <tr><th>Endereço</th><td><?= e(implode(' — ', company_address_lines($company))) ?></td></tr>
                     <tr><th>Autoridade Nacional (ANPD)</th><td><a href="https://www.gov.br/anpd" target="_blank" rel="noopener noreferrer">www.gov.br/anpd</a></td></tr>
                 </tbody>
             </table>

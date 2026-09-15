@@ -4,7 +4,7 @@
    ========================================================================= */
 'use strict';
 
-var CACHE = 'hidrossolo-driver-v2';
+var CACHE = 'hidrossolo-driver-v3';
 var OFFLINE_URL = '/offline.html';
 
 var PRECACHE = [

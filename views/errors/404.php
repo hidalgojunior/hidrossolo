@@ -31,7 +31,7 @@
                 <div class="d-flex flex-wrap gap-2 justify-content-center mb-5">
                     <a href="/" class="btn btn-primary btn-lg"><i class="bi bi-house-door"></i> Voltar ao início</a>
                     <a href="/servicos" class="btn btn-outline-primary btn-lg"><i class="bi bi-droplet"></i> Nossos serviços</a>
-                    <a href="https://wa.me/5514991234567" target="_blank" rel="noopener" class="btn btn-outline-secondary btn-lg">
+                    <a href="<?= e(company_whatsapp_link($company['whatsapp'] ?? '')) ?>" target="_blank" rel="noopener" class="btn btn-outline-secondary btn-lg">
                         <i class="bi bi-whatsapp"></i> Falar com a equipe
                     </a>
                 </div>

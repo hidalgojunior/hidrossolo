@@ -318,11 +318,13 @@ class ContratosController extends BaseController
         return $valores;
     }
 
+    /**
+     * Datas do formulário chegam como dd/mm/aaaa (máscara em ui.js) e são
+     * gravadas como aaaa-mm-dd. Também aceita aaaa-mm-dd.
+     */
     private function date(mixed $value): ?string
     {
-        $value = trim((string) ($value ?? ''));
-
-        return $value !== '' && strtotime($value) ? date('Y-m-d', strtotime($value)) : null;
+        return data_br_para_iso($value);
     }
 
     private function decimal(mixed $value): ?float

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controllers\Admin;
 
 use App\Core\BaseController;
+use App\Support\YouTube;
 
 /**
  * Biblioteca de Mídias.
@@ -20,6 +21,9 @@ class MidiaController extends BaseController
     private const ALLOWED_EXT = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'pdf', 'doc', 'docx', 'xls', 'xlsx'];
     private const IMAGE_EXT = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'];
 
+    /** Marcador de mídia hospedada fora do servidor (vídeo do YouTube). */
+    public const MIME_YOUTUBE = 'video/youtube';
+
     /** Categorias sugeridas para organizar a biblioteca. */
     public const CATEGORIES = [
         'general' => 'Geral',
@@ -31,6 +35,7 @@ class MidiaController extends BaseController
         'equipe' => 'Equipe',
         'documentos' => 'Documentos',
         'editor' => 'Editor',
+        'videos' => 'Vídeos',
     ];
 
     /* =====================================================================
@@ -149,6 +154,64 @@ class MidiaController extends BaseController
         }
 
         $this->respond($wantsJson, true, $message, ['items' => $created]);
+    }
+
+    /* =====================================================================
+     | Vídeo do YouTube (sem hospedar o arquivo no servidor)
+     * =================================================================== */
+
+    /**
+     * Cadastra um vídeo que já está no YouTube.
+     *
+     * O vídeo não é baixado nem copiado e nada é hospedado no servidor:
+     * guardamos a URL do vídeo em `file_path`, a capa em `thumbnail_path` e
+     * marcamos o tipo como `video/youtube`. Vídeos maiores (ou até
+     * transmissões já encerradas) passam a ficar disponíveis na biblioteca
+     * sem consumir espaço nem banda da hospedagem.
+     *
+     * Não é preciso alterar o banco: o tipo fica no `mime_type` e o ID do
+     * vídeo é extraído da própria URL quando a mídia é lida.
+     */
+    public function youtube(): void
+    {
+        $db = $this->db();
+        $wantsJson = $this->wantsJson();
+
+        $videoId = YouTube::parse((string) ($_POST['youtube_url'] ?? ''));
+
+        if ($videoId === null) {
+            $this->respond(
+                $wantsJson,
+                false,
+                'Link do YouTube inválido. Cole a URL do vídeo (youtube.com/watch?v=…, youtu.be/… ou /shorts/…).'
+            );
+        }
+
+        $watchUrl = YouTube::watchUrl($videoId);
+
+        if ($db->fetch('SELECT id FROM media_library WHERE file_path = ?', [$watchUrl])) {
+            $this->respond($wantsJson, false, 'Este vídeo já está na biblioteca.');
+        }
+
+        $titulo = trim((string) ($_POST['title'] ?? ''));
+        $alt = trim((string) ($_POST['alt_text'] ?? ''));
+        $nome = $titulo !== '' ? $titulo : 'Vídeo do YouTube ' . $videoId;
+
+        $id = $db->insert('media_library', [
+            'filename' => 'youtube-' . $videoId,
+            'original_name' => mb_substr($nome, 0, 255),
+            'mime_type' => self::MIME_YOUTUBE,
+            'file_size' => 0,
+            'file_path' => $watchUrl,
+            'thumbnail_path' => YouTube::thumbnail($videoId),
+            'alt_text' => mb_substr($alt !== '' ? $alt : $nome, 0, 255),
+            'category' => $this->sanitizeCategory($_POST['category'] ?? 'videos'),
+            'uploaded_by' => $_SESSION['user_id'] ?? null,
+        ]);
+
+        $this->respond($wantsJson, true, 'Vídeo do YouTube adicionado à biblioteca!', [
+            'item' => $this->mapRow($db->fetch('SELECT * FROM media_library WHERE id = ?', [$id]) ?? []),
+        ]);
     }
 
     /* =====================================================================
@@ -300,7 +363,7 @@ class MidiaController extends BaseController
         $type = (string) ($_GET['type'] ?? 'all');
         $category = (string) ($_GET['categoria'] ?? 'all');
 
-        if (!in_array($type, ['all', 'image', 'document'], true)) {
+        if (!in_array($type, ['all', 'image', 'video', 'document'], true)) {
             $type = 'all';
         }
 
@@ -315,8 +378,10 @@ class MidiaController extends BaseController
 
         if ($type === 'image') {
             $where[] = "mime_type LIKE 'image/%'";
+        } elseif ($type === 'video') {
+            $where[] = "mime_type LIKE 'video/%'";
         } elseif ($type === 'document') {
-            $where[] = "mime_type NOT LIKE 'image/%'";
+            $where[] = "mime_type NOT LIKE 'image/%' AND mime_type NOT LIKE 'video/%'";
         }
 
         if ($category !== 'all' && $category !== '') {
@@ -333,7 +398,11 @@ class MidiaController extends BaseController
     {
         $mime = (string) ($m['mime_type'] ?? '');
         $isImage = str_starts_with($mime, 'image/');
+        $isVideo = str_starts_with($mime, 'video/');
         $size = (int) ($m['file_size'] ?? 0);
+
+        // Vídeo do YouTube: o ID vem da própria URL gravada em file_path.
+        $externalId = $isVideo ? (YouTube::parse((string) ($m['file_path'] ?? '')) ?? '') : '';
 
         return [
             'id' => (int) ($m['id'] ?? 0),
@@ -343,6 +412,9 @@ class MidiaController extends BaseController
             'filename' => (string) ($m['filename'] ?? ''),
             'mime_type' => $mime,
             'is_image' => $isImage,
+            'is_video' => $isVideo,
+            'external_id' => $externalId,
+            'embed_url' => $externalId !== '' ? YouTube::embedUrl($externalId) : '',
             'size' => $size,
             'size_human' => self::humanSize($size),
             'category' => (string) (!empty($m['category']) ? $m['category'] : 'general'),
@@ -354,6 +426,12 @@ class MidiaController extends BaseController
 
     private function iconFor(string $mime, string $name): string
     {
+        if ($mime === self::MIME_YOUTUBE) {
+            return 'bi-youtube';
+        }
+        if (str_starts_with($mime, 'video/')) {
+            return 'bi-camera-video';
+        }
         if (str_starts_with($mime, 'image/')) {
             return 'bi-image';
         }

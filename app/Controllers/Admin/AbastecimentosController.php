@@ -91,7 +91,7 @@ class AbastecimentosController extends BaseController
 
         $id = $this->db()->insert('vehicle_fuel', [
             'vehicle_id' => (int)$data['vehicle_id'],
-            'fuel_date' => $data['fuel_date'],
+            'fuel_date' => data_br_para_iso($data['fuel_date']),
             'liters' => (float)$liters,
             'cost' => (float)$cost,
             'km_at_refuel' => $km,
@@ -190,13 +190,13 @@ class AbastecimentosController extends BaseController
             $where[] = 'vf.vehicle_id = ?';
             $params[] = $filtros['vehicle_id'];
         }
-        if ($filtros['inicio'] !== '' && strtotime($filtros['inicio'])) {
+        if ($filtros['inicio'] !== '' && data_br_para_iso($filtros['inicio']) !== null) {
             $where[] = 'vf.fuel_date >= ?';
-            $params[] = date('Y-m-d', (int) strtotime($filtros['inicio']));
+            $params[] = data_br_para_iso($filtros['inicio']);
         }
-        if ($filtros['fim'] !== '' && strtotime($filtros['fim'])) {
+        if ($filtros['fim'] !== '' && data_br_para_iso($filtros['fim']) !== null) {
             $where[] = 'vf.fuel_date <= ?';
-            $params[] = date('Y-m-d', (int) strtotime($filtros['fim']));
+            $params[] = data_br_para_iso($filtros['fim']);
         }
 
         $sqlWhere = $where === [] ? '' : 'WHERE ' . implode(' AND ', $where);

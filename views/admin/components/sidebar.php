@@ -107,6 +107,12 @@
                 <i class="bi bi-envelope"></i> Mensagens
             </a>
         </li>
+        <li>
+            <a class="nav-link <?= e(str_contains($_SERVER['REQUEST_URI'], '/admin/orcamentos') ? 'active' : '') ?>" 
+               href="/admin/orcamentos">
+                <i class="bi bi-clipboard-check"></i> Orçamentos
+            </a>
+        </li>
 
         <li class="section-title">Financeiro</li>
         <li>

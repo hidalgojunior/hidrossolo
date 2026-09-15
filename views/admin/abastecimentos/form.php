@@ -27,7 +27,8 @@
                 </div>
                 <div class="col-md-3">
                     <label class="form-label">Data *</label>
-                    <input type="date" name="fuel_date" class="form-control" required value="<?= e(date('Y-m-d')) ?>">
+                    <input type="text" name="fuel_date" class="form-control" required data-date-br
+                           placeholder="dd/mm/aaaa" value="<?= e(data_iso_para_br(date('Y-m-d'))) ?>">
                 </div>
                 <div class="col-md-3">
                     <label class="form-label">KM no abastecimento</label>

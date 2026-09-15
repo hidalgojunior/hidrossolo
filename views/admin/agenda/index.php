@@ -392,8 +392,9 @@ $anoSeguinte = $mes === 12 ? $ano + 1 : $ano;
 
                     <div class="col-6">
                         <label class="form-label" for="agenda_date" data-rotulo-data>Data *</label>
-                        <input type="date" name="scheduled_date" id="agenda_date" class="form-control" required
-                               value="<?= e(date('Y-m-d')) ?>">
+                        <input type="text" name="scheduled_date" id="agenda_date" class="form-control" required
+                               data-date-br placeholder="dd/mm/aaaa"
+                               value="<?= e(data_iso_para_br(date('Y-m-d'))) ?>">
                     </div>
                     <div class="col-6" data-grupo-hora>
                         <label class="form-label" for="agenda_time">Hora</label>
@@ -468,8 +469,15 @@ $anoSeguinte = $mes === 12 ? $ano + 1 : $ano;
     var modal = document.getElementById('agendaModal');
     var dataInput = document.getElementById('agenda_date');
 
+    // O calendário usa aaaa-mm-dd por dentro; o campo exibe dd/mm/aaaa.
+    function isoParaBr(iso) {
+        var partes = String(iso).split('-');
+
+        return partes.length === 3 ? partes[2] + '/' + partes[1] + '/' + partes[0] : '';
+    }
+
     function abrir(data) {
-        if (data) dataInput.value = data;
+        if (data) dataInput.value = isoParaBr(data);
         modal.classList.add('show');
         document.body.style.overflow = 'hidden';
     }

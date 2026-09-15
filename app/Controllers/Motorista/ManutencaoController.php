@@ -101,8 +101,8 @@ class ManutencaoController extends BaseController
         if (!array_key_exists($serviceCategory, FleetCatalog::servicos())) {
             $serviceCategory = 'other';
         }
-        if ($date === '' || !strtotime($date)) {
-            $errors[] = 'Informe uma data válida.';
+        if (data_br_para_iso($date) === null) {
+            $errors[] = 'Informe uma data válida (dd/mm/aaaa).';
         }
         if ($description === '') {
             $errors[] = 'Descreva o serviço realizado.';
@@ -122,8 +122,8 @@ class ManutencaoController extends BaseController
             'type' => $type,
             'service_category' => $serviceCategory,
             'workshop' => $workshop !== '' ? mb_substr($workshop, 0, 255) : null,
-            'maintenance_date' => date('Y-m-d', strtotime($date)),
-            'next_review_date' => ($nextReview !== '' && strtotime($nextReview)) ? date('Y-m-d', strtotime($nextReview)) : null,
+            'maintenance_date' => data_br_para_iso($date),
+            'next_review_date' => data_br_para_iso($nextReview),
             'km_at_maintenance' => $km,
             'cost' => $cost,
             'description' => $description,

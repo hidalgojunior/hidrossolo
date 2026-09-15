@@ -59,13 +59,15 @@ $templateSelecionado = (int) ($contrato['template_id'] ?? ($templates[0]['id'] ?
                         </div>
                         <div class="col-md-4">
                             <label class="form-label" for="start_date">Início</label>
-                            <input type="date" name="start_date" id="start_date" class="form-control"
-                                   value="<?= e($contrato['start_date'] ?? '') ?>">
+                            <input type="text" name="start_date" id="start_date" class="form-control" data-date-br
+                                   placeholder="dd/mm/aaaa"
+                                   value="<?= e(data_iso_para_br($contrato['start_date'] ?? '')) ?>">
                         </div>
                         <div class="col-md-4">
                             <label class="form-label" for="end_date">Término</label>
-                            <input type="date" name="end_date" id="end_date" class="form-control"
-                                   value="<?= e($contrato['end_date'] ?? '') ?>">
+                            <input type="text" name="end_date" id="end_date" class="form-control" data-date-br
+                                   placeholder="dd/mm/aaaa"
+                                   value="<?= e(data_iso_para_br($contrato['end_date'] ?? '')) ?>">
                         </div>
                         <div class="col-md-4">
                             <label class="form-label" for="status">Status</label>
