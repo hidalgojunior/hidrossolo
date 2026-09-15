@@ -166,7 +166,7 @@ $secoes = [
                     <tr><th style="width:34%">Empresa</th><td>Hidrossolo Poços Artesianos</td></tr>
                     <tr><th>Endereço</th><td>R. Assad Haddad, 584 — Parque das Indústrias, Marília/SP — CEP 17519-700</td></tr>
                     <tr><th>Telefone</th><td>(14) 3413-2437</td></tr>
-                    <tr><th>E-mail</th><td>contato@hidrossolo.com.br</td></tr>
+                    <tr><th>E-mail</th><td>hidrossolo@hidrossolopocos.com.br</td></tr>
                 </tbody>
             </table>
         </section>

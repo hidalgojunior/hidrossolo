@@ -56,7 +56,7 @@ $metaKeywords = $seo['keywords'] ?? 'poços artesianos, perfuração de poços, 
             "postalCode": "17519-700"
         },
         "telephone": "(14) 3413-2437",
-        "email": "contato@hidrossolo.com.br"
+        "email": "hidrossolo@hidrossolopocos.com.br"
     }
     </script>
 

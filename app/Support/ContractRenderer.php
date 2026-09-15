@@ -73,7 +73,7 @@ final class ContractRenderer
             'cnpj' => '',
             'endereco_empresa' => 'R. Assad Haddad, 584 - Parque das Indústrias, Marília/SP',
             'telefone_empresa' => '(14) 3413-2437',
-            'email_empresa' => 'contato@hidrossolo.com.br',
+            'email_empresa' => 'hidrossolo@hidrossolopocos.com.br',
         ];
     }
 

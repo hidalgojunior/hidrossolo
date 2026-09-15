@@ -41,7 +41,7 @@ $year = date('Y');
                 <h5>Contato</h5>
                 <p><i class="bi bi-geo-alt me-2"></i>R. Assad Haddad, 584<br>Parque das Indústrias<br>Marília - SP</p>
                 <p><i class="bi bi-telephone me-2"></i>(14) 3413-2437</p>
-                <p><i class="bi bi-envelope me-2"></i>contato@hidrossolo.com.br</p>
+                <p><i class="bi bi-envelope me-2"></i>hidrossolo@hidrossolopocos.com.br</p>
             </div>
         </div>
 

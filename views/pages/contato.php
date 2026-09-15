@@ -57,7 +57,7 @@
                     <?= e($config['whatsapp'] ?? '(14) 99123-4567') ?></p>
 
                     <p><i class="bi bi-envelope-fill text-primary me-2"></i><strong>E-mail:</strong><br>
-                    <?= e($config['email'] ?? 'contato@hidrossolo.com.br') ?></p>
+                    <?= e($config['email'] ?? 'hidrossolo@hidrossolopocos.com.br') ?></p>
 
                     <hr>
                     <h5>Horário de Funcionamento</h5>

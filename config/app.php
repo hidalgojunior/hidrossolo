@@ -18,7 +18,7 @@ return [
         'zip' => '17519-700',
         'phone' => '(14) 3413-2437',
         'whatsapp' => '(14) 99123-4567',
-        'email' => 'contato@hidrossolo.com.br',
+        'email' => 'hidrossolo@hidrossolopocos.com.br',
     ],
 
     // SEO padrão
