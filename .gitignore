@@ -35,3 +35,8 @@ Thumbs.db
 # Banco de dados
 *.sql
 !db_structure.sql
+
+# Caches gerados em tempo de execucao (dompdf grava os metadados de fonte
+# na primeira vez que um PDF e gerado). O deploy por rsync continua enviando
+# os arquivos, pois usa a arvore de trabalho — so nao entram no git.
+vendor/dompdf/dompdf/lib/fonts/*.ufm.json
