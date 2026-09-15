@@ -18,6 +18,16 @@ Parque das Indústrias
 Marília - SP
 CEP: 17519-700
 
+**Telefone fixo:** (14) 3413-7789  
+**WhatsApp:** (14) 99789-4727  
+**E-mail:** hidrossolo@hidrossolopocos.com.br  
+**Horário:** Seg a Sex: 08h às 17h
+
+> Todos esses dados são cadastrados em **Admin → CMS → Contato** e existe uma
+> **fonte única**: o que for salvo ali aparece automaticamente na página de
+> contato, no rodapé de todas as páginas, nas páginas legais, no JSON-LD (SEO)
+> e no cabeçalho dos relatórios em PDF.
+
 ---
 
 # Objetivos do Projeto
@@ -151,11 +161,21 @@ Cada serviço deverá possuir:
 ### Informações
 
 - Endereço
-- Telefone
+- Telefone fixo
 - WhatsApp
 - E-mail
 
+São os mesmos dados do rodapé (fonte única). Telefone, e-mail e endereço são
+**clicáveis**: o telefone abre a discagem (`tel:`), o e-mail abre o cliente de
+correio (`mailto:`) e o endereço abre a rota no mapa (`Google Maps`) — útil
+para quem acessa pelo celular.
+
 ### Horário de Funcionamento
+
+### Redes sociais
+
+Ícones exibidos no rodapé de todas as páginas, conforme o que estiver
+cadastrado no CMS.
 
 ### Formulário de Contato
 Campos:
@@ -166,6 +186,10 @@ Campos:
 - Mensagem
 
 ### Google Maps
+
+O mapa embutido é montado a partir do **endereço cadastrado no CMS** (ao lado
+do formulário), e também há o link de rota mencionado acima em
+[Informações](#informações).
 
 ---
 
@@ -196,9 +220,13 @@ Sistema inspirado na experiência de uso do WordPress, porém desenvolvido integ
 
 ### Contato
 
-- Dados institucionais
-- Horários
-- Redes sociais
+- Dados institucionais (endereço, telefone fixo, WhatsApp, e-mail, horário)
+- Horários de funcionamento
+- Logo da marca (usada no site e nos relatórios em PDF)
+- Título e texto do formulário
+- **Redes sociais** — Instagram, Facebook, YouTube, LinkedIn, TikTok e X
+  (Twitter), além de **Outras redes** livres, uma por linha no formato
+  `Nome | endereço`. Rede deixada em branco não aparece no site.
 
 ---
 
@@ -239,6 +267,26 @@ Permitir:
 - Compressão automática
 - Conversão para WEBP
 - Exclusão segura
+
+## Vídeos do YouTube
+
+Vídeos entram na biblioteca **por link do YouTube**, sem hospedar o arquivo:\nao colar o endereço do vídeo, o sistema guarda a URL, busca a capa
+automaticamente e passa a exibir um player no visualizador. Assim vídeos
+maiores (ou até transmissões já encerradas) ficam disponíveis sem consumir
+espaço nem banda da hospedagem.
+
+Formatos aceitos ao colar: `youtube.com/watch?v=…`, `youtu.be/…`,
+`youtube.com/shorts/…` (Shorts), `/embed/…`, `/live/…`, `/v/…` e o ID puro.
+Links de outros serviços são recusados, e o mesmo vídeo não pode ser
+cadastrado duas vezes.
+
+Há um filtro **Vídeos** na biblioteca. O recurso **não exige alteração no
+banco**: o tipo fica no `mime_type` (`video/youtube`) e o ID é lido da própria
+URL.
+
+> O upload direto de arquivo de vídeo **não** é permitido (decisão do
+> projeto): os arquivos enviados continuam limitados a 10MB e aos formatos de
+> imagem/documento.
 
 ---
 
@@ -488,7 +536,42 @@ Implementado em `app/Core/Security.php` (carregado no bootstrap da aplicação):
 
 ---
 
+# Solicitações de orçamento
+
+## Formulário público (`/orcamento`)
+
+Campos: nome, e-mail, telefone, tipo de serviço, endereço do serviço,
+**data desejada** e descrição do que precisa. A solicitação entra no sistema
+com a situação inicial **Nova** e o visitante é levado para a página de
+agradecimento.
+
+## Central de orçamentos (`/admin/orcamentos`)
+
+- Lista das solicitações com filtro por situação
+- Detalhe com todos os dados enviados
+- Situações: **Nova**, **Em análise**, **Respondida**, **Aprovada** e
+  **Recusada** — abrir uma solicitação ainda nova já a move para *Em análise*
+- Botões para **responder por e-mail** e **chamar no WhatsApp** direto para o
+  contato do cliente
+- Exclusão da solicitação
+
+> A tabela `orcamentos` é criada automaticamente na primeira solicitação, para
+a funcionar também em hospedagem sem acesso a terminal.
+
+---
+
 # Gestão operacional e financeira
+
+## Padrões de data e moeda
+
+- **Datas sempre em `dd/mm/aaaa`** na tela e `aaaa-mm-dd` no banco. Os campos
+  usam máscara própria (`data-date-br`, em `assets/js/ui.js`) em vez do
+  `<input type="date">` nativo, que é exibido no formato do idioma do
+  navegador — em navegador configurado em inglês aparece `mm/dd/yyyy`.
+- **Fuso horário:** `America/Sao_Paulo` (GMT-3), definido na inicialização da
+  aplicação.
+- **Valores:** moeda brasileira — `R$ 1.234,56` na tela e `R$ #,##0.00` nos
+  arquivos exportados.
 
 ## Agenda & compromissos (`/admin/agenda`)
 
@@ -540,8 +623,9 @@ congelado, filtro automático, largura de colunas, bordas, linhas zebradas,
 linha de totais e formatos nativos de moeda (`R$ #,##0.00`) e data
 (`dd/mm/yyyy`) — abre direto no Excel, LibreOffice e Google Planilhas.
 
-Os PDFs são gerados em A4 (paisagem ou retrato) com cabeçalho da marca,
-cartões de resumo, tabela formatada e rodapé.
+Os PDFs são gerados em A4 (paisagem ou retrato) com cabeçalho trazendo a
+**logo cadastrada no CMS** (Admin → CMS → Contato), cartões de resumo, tabela
+formatada e rodapé com numeração de páginas.
 
 Telas com exportação: **agenda**, **fluxo de caixa** (3 abas no Excel),
 **frota & equipamentos**, **relatórios de consumo** (2 abas),
@@ -693,3 +777,7 @@ Entregar uma plataforma corporativa unificada que combine:
 - Segurança corporativa
 - Ambiente Docker para desenvolvimento e homologação
 - Estrutura preparada para crescimento futuro
+
+---
+
+**Desenvolvido por Arnaldo Martins Hidalgo Junior** — hidalgojunior@gmail.com
